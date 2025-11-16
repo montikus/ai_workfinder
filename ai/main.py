@@ -1,4 +1,5 @@
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_ollama import ChatOllama
 
 from .state import UserProfile, make_initial_state, JobSearchState
 from .graph_builder import build_job_search_graph
@@ -6,14 +7,15 @@ from .graph_builder import build_job_search_graph
 
 def build_model() -> BaseChatModel:
     """
-    TODO: plug in ChatOllama / ChatOpenAI / Groq / etc. here.
-
-    Example:
-
-    from langchain_ollama import ChatOllama
-    return ChatOllama(model="llama3.1", temperature=0)
+    Return local Llama3 model served by Ollama (Docker).
+    This model is used by all agents (supervisor, search, contacts, applicator).
     """
-    raise NotImplementedError("Implement build_model() for your environment")
+
+    return ChatOllama(
+        model="llama3",               
+        base_url="http://localhost:11434",  
+        temperature=0.0,             
+    )
 
 #test build model invoke
 from backend.tools.job_search import search_jobs
