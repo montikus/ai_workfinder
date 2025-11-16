@@ -20,9 +20,10 @@ export function RegisterPage() {
       ustawBlad('Passwords do not match');
       return;
     }
-
+    
     ustawLadowanie(true);
     try {
+      console.log(haslo)
       await zarejestruj({ email, password: haslo });
       navigate('/login');
     } catch (err) {
