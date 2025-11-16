@@ -133,6 +133,18 @@ tenacity = ">=8.1.0,<8.4.0 || >8.4.0,<10.0.0"
 typing-extensions = ">=4.7.0,<5.0.0"
 
 [[package]]
+name = "langchain-ollama"
+version = "1.0.0"
+description = "An integration package connecting Ollama and LangChain"
+category = "main"
+optional = false
+python-versions = "<4.0.0,>=3.10.0"
+
+[package.dependencies]
+langchain-core = ">=1.0.0,<2.0.0"
+ollama = ">=0.6.0,<1.0.0"
+
+[[package]]
 name = "langgraph"
 version = "1.0.3"
 description = "Building stateful, multi-actor applications with LLMs"
@@ -208,6 +220,18 @@ openai-agents = ["openai-agents (>=0.0.3)"]
 otel = ["opentelemetry-api (>=1.30.0)", "opentelemetry-exporter-otlp-proto-http (>=1.30.0)", "opentelemetry-sdk (>=1.30.0)"]
 pytest = ["pytest (>=7.0.0)", "rich (>=13.9.4)", "vcrpy (>=7.0.0)"]
 vcr = ["vcrpy (>=7.0.0)"]
+
+[[package]]
+name = "ollama"
+version = "0.6.1"
+description = "The official Python client for Ollama."
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+httpx = ">=0.27"
+pydantic = ">=2.9"
 
 [[package]]
 name = "orjson"
@@ -374,7 +398,7 @@ cffi = ["cffi (>=1.17,<2.0)", "cffi (>=2.0.0b)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "038832e131847cb47a0d43d5e485e8a04bb9df05867edd88a84f38620183c8f0"
+content-hash = "ec3540a67612338efb7f860787b30b590964bb8d5681cca919a79735707e3435"
 
 [metadata.files]
 annotated-types = []
@@ -388,11 +412,13 @@ idna = []
 jsonpatch = []
 jsonpointer = []
 langchain-core = []
+langchain-ollama = []
 langgraph = []
 langgraph-checkpoint = []
 langgraph-prebuilt = []
 langgraph-sdk = []
 langsmith = []
+ollama = []
 orjson = []
 ormsgpack = []
 packaging = []
