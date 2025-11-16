@@ -6,28 +6,30 @@ function JobsListInner() {
   const [ladowanie, ustawLadowanie] = useState(true);
   const [blad, ustawBlad] = useState(null);
 
-  useEffect(() => {
-    let aktywny = true;
-    ustawLadowanie(true);
-    pobierzOferty()
-      .then((res) => {
-        if (!aktywny) return;
-        ustawOferty(res.data || []);
-      })
-      .catch((err) => {
-        console.error(err);
-        if (!aktywny) return;
-        ustawBlad('Failed to load jobs');
-      })
-      .finally(() => {
-        if (!aktywny) return;
-        ustawLadowanie(false);
-      });
+ useEffect(() => {
+  let aktywny = true;
 
-    return () => {
-      aktywny = false;
-    };
-  }, []);
+  pobierzOferty()
+    .then((res) => {
+      if (!aktywny) return;
+      ustawOferty(res.data || []);
+      ustawBlad(null);
+    })
+    .catch((err) => {
+      console.error(err);
+      if (!aktywny) return;
+      ustawBlad('Failed to load jobs');
+    })
+    .finally(() => {
+      if (!aktywny) return;
+      ustawLadowanie(false);
+    });
+
+  return () => {
+    aktywny = false;
+  };
+}, []);
+
 
   if (ladowanie) {
     return <div>Loading jobs...</div>;

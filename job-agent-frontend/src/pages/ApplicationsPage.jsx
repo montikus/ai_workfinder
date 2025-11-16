@@ -7,26 +7,28 @@ export function ApplicationsPage() {
   const [blad, ustawBlad] = useState(null);
 
   useEffect(() => {
-    let aktywny = true;
-    ustawLadowanie(true);
-    pobierzAplikacje()
-      .then((res) => {
-        if (!aktywny) return;
-        ustawAplikacje(res.data || []);
-      })
-      .catch((err) => {
-        console.error(err);
-        if (!aktywny) return;
-        ustawBlad('Failed to load applications');
-      })
-      .finally(() => {
-        if (!aktywny) return;
-        ustawLadowanie(false);
-      });
-    return () => {
-      aktywny = false;
-    };
-  }, []);
+  let aktywny = true;
+
+  pobierzAplikacje()
+    .then((res) => {
+      if (!aktywny) return;
+      ustawAplikacje(res.data || []);
+      ustawBlad(null);
+    })
+    .catch((err) => {
+      if (!aktywny) return;
+      console.error(err);
+      ustawBlad('Failed to load applications');
+    })
+    .finally(() => {
+      if (!aktywny) return;
+      ustawLadowanie(false);
+    });
+
+  return () => {
+    aktywny = false;
+  };
+}, []);
 
   if (ladowanie) {
     return <div>Loading applications...</div>;
