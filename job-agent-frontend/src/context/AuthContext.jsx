@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { logowanie, rejestracja, pobierzProfil } from '../api/auth.js';
 
 const AuthContext = createContext(null);
@@ -31,34 +31,37 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const zaloguj = async (daneLogowania) => {
+  const zaloguj = useCallback(async (daneLogowania) => {
     const res = await logowanie(daneLogowania);
     const nowyToken = res.data.token; // предполагаем, что бекенд возвращает { token, user }
     localStorage.setItem('token', nowyToken);
     ustawToken(nowyToken);
     ustawUzytkownika(res.data.user || null);
-  };
+  }, []);
 
-  const zarejestruj = async (dane) => {
+  const zarejestruj = useCallback(async (dane) => {
     await rejestracja(dane);
-  };
+  }, []);
 
-  const wyloguj = () => {
+  const wyloguj = useCallback(() => {
     localStorage.removeItem('token');
     ustawToken(null);
     ustawUzytkownika(null);
-  };
+  }, []);
 
-  const wartosc = {
-    uzytkownik,
-    token,
-    zalogowany,
-    ladowanie,
-    zaloguj,
-    zarejestruj,
-    wyloguj,
-    ustawUzytkownika,
-  };
+  const wartosc = useMemo(
+    () => ({
+      uzytkownik,
+      token,
+      zalogowany,
+      ladowanie,
+      zaloguj,
+      zarejestruj,
+      wyloguj,
+      ustawUzytkownika,
+    }),
+    [uzytkownik, token, zalogowany, ladowanie, zaloguj, zarejestruj, wyloguj]
+  );
 
   return <AuthContext.Provider value={wartosc}>{children}</AuthContext.Provider>;
 }

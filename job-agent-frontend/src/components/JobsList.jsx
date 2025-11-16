@@ -1,24 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { pobierzOferty } from '../api/jobs.js';
 
-export function JobsList() {
+function JobsListInner() {
   const [oferty, ustawOferty] = useState([]);
   const [ladowanie, ustawLadowanie] = useState(true);
   const [blad, ustawBlad] = useState(null);
 
   useEffect(() => {
+    let aktywny = true;
     ustawLadowanie(true);
     pobierzOferty()
       .then((res) => {
+        if (!aktywny) return;
         ustawOferty(res.data || []);
       })
       .catch((err) => {
         console.error(err);
+        if (!aktywny) return;
         ustawBlad('Failed to load jobs');
       })
       .finally(() => {
+        if (!aktywny) return;
         ustawLadowanie(false);
       });
+
+    return () => {
+      aktywny = false;
+    };
   }, []);
 
   if (ladowanie) {
@@ -64,3 +72,5 @@ export function JobsList() {
     </div>
   );
 }
+
+export const JobsList = React.memo(JobsListInner);

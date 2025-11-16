@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { pobierzProfil, aktualizujProfil } from '../api/auth.js';
 import { klientHttp } from '../api/http.js';
 import { polaczGmail } from '../api/gmail.js';
@@ -19,9 +19,11 @@ export function ProfilePage() {
   const [sukces, ustawSukces] = useState(null);
 
   useEffect(() => {
+    let aktywny = true;
     ustawLadowanie(true);
     pobierzProfil()
       .then((res) => {
+        if (!aktywny) return;
         const dane = res.data;
         ustawUzytkownika(dane);
         ustawImie(dane.name || '');
@@ -33,36 +35,45 @@ export function ProfilePage() {
       })
       .catch((err) => {
         console.error(err);
+        if (!aktywny) return;
         ustawBlad('Failed to load profile');
       })
       .finally(() => {
+        if (!aktywny) return;
         ustawLadowanie(false);
       });
+
+    return () => {
+      aktywny = false;
+    };
   }, [ustawUzytkownika]);
 
-  const obsluzZapis = async (e) => {
-    e.preventDefault();
-    ustawBlad(null);
-    ustawSukces(null);
-    ustawZapisLadowanie(true);
-    try {
-      const res = await aktualizujProfil({
-        name: imie,
-        phone: telefon,
-        location: lokalizacja,
-        job_preferences_text: preferencje,
-      });
-      ustawUzytkownika(res.data);
-      ustawSukces('Profile updated');
-    } catch (err) {
-      console.error(err);
-      ustawBlad('Failed to update profile');
-    } finally {
-      ustawZapisLadowanie(false);
-    }
-  };
+  const obsluzZapis = useCallback(
+    async (e) => {
+      e.preventDefault();
+      ustawBlad(null);
+      ustawSukces(null);
+      ustawZapisLadowanie(true);
+      try {
+        const res = await aktualizujProfil({
+          name: imie,
+          phone: telefon,
+          location: lokalizacja,
+          job_preferences_text: preferencje,
+        });
+        ustawUzytkownika(res.data);
+        ustawSukces('Profile updated');
+      } catch (err) {
+        console.error(err);
+        ustawBlad('Failed to update profile');
+      } finally {
+        ustawZapisLadowanie(false);
+      }
+    },
+    [imie, telefon, lokalizacja, preferencje, ustawUzytkownika]
+  );
 
-  const obsluzPlikCV = async (e) => {
+  const obsluzPlikCV = useCallback(async (e) => {
     const plik = e.target.files[0];
     if (!plik) return;
 
@@ -79,9 +90,9 @@ export function ProfilePage() {
       console.error(err);
       ustawBlad('Failed to upload resume');
     }
-  };
+  }, []);
 
-  const obsluzPolaczenieGmail = async () => {
+  const obsluzPolaczenieGmail = useCallback(async () => {
     try {
       const res = await polaczGmail();
       const url = res.data.url;
@@ -90,7 +101,7 @@ export function ProfilePage() {
       console.error(err);
       ustawBlad('Failed to start Gmail connection');
     }
-  };
+  }, []);
 
   if (ladowanie) {
     return <div>Loading profile...</div>;
