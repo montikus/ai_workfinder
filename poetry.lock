@@ -23,6 +23,25 @@ typing_extensions = {version = ">=4.5", markers = "python_version < \"3.13\""}
 trio = ["trio (>=0.31.0)"]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.14.2"
+description = "Screen-scraping library"
+category = "main"
+optional = false
+python-versions = ">=3.7.0"
+
+[package.dependencies]
+soupsieve = ">1.2"
+typing-extensions = ">=4.0.0"
+
+[package.extras]
+cchardet = ["cchardet"]
+chardet = ["chardet"]
+charset-normalizer = ["charset-normalizer"]
+html5lib = ["html5lib"]
+lxml = ["lxml"]
+
+[[package]]
 name = "certifi"
 version = "2025.11.12"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -332,6 +351,14 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "soupsieve"
+version = "2.8"
+description = "A modern CSS selector implementation for Beautiful Soup."
+category = "main"
+optional = false
+python-versions = ">=3.9"
+
+[[package]]
 name = "tenacity"
 version = "9.1.2"
 description = "Retry code until it succeeds"
@@ -398,11 +425,12 @@ cffi = ["cffi (>=1.17,<2.0)", "cffi (>=2.0.0b)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "ec3540a67612338efb7f860787b30b590964bb8d5681cca919a79735707e3435"
+content-hash = "078502ea8a0bcd5aa943c71a2ce309434b6bb33ba1ecb2bd7e0be2a41ed5fe3a"
 
 [metadata.files]
 annotated-types = []
 anyio = []
+beautifulsoup4 = []
 certifi = []
 charset-normalizer = []
 h11 = []
@@ -428,6 +456,7 @@ pyyaml = []
 requests = []
 requests-toolbelt = []
 sniffio = []
+soupsieve = []
 tenacity = []
 typing-extensions = []
 typing-inspection = []
