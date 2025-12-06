@@ -1,61 +1,43 @@
-from langchain_core.language_models.chat_models import BaseChatModel
+from __future__ import annotations
+
 from langgraph.graph import StateGraph, START, END
 
-from .state import JobSearchState
+from .state import WorkflowState
 from .agents import (
-    create_supervisor_node,
-    create_job_search_agent,
-    create_contacts_extractor_agent,
-    create_applicator_agent,
-    JobSearchTool,
-    ContactsTool,
-    ApplyTool,
+    make_supervisor_node,
+    supervisor_router,
+    make_search_agent_node,
+    make_one_click_filter_agent_node,
+    make_apply_agent_node,
 )
 
 
-def build_job_search_graph(
-    model: BaseChatModel,
-    job_search_tool: JobSearchTool,
-    contacts_tool: ContactsTool,
-    apply_tool: ApplyTool,
-):
+def build_graph(llm):
     """
-    Build the multi-agent job search graph:
-
-    supervisor <-> (job_search, contacts_extractor, applicator) -> END
+    One shared LLM instance is injected into every node via closures.
     """
+    g = StateGraph(WorkflowState)
 
-    builder = StateGraph(JobSearchState)
+    g.add_node("supervisor", make_supervisor_node(llm))
+    g.add_node("search_agent", make_search_agent_node(llm))
+    g.add_node("filter_agent", make_one_click_filter_agent_node(llm))
+    g.add_node("apply_agent", make_apply_agent_node(llm))
 
-    # Nodes
-    builder.add_node("supervisor", create_supervisor_node(model))
-    builder.add_node("job_search", create_job_search_agent(model, job_search_tool))
-    builder.add_node(
-        "contacts_extractor", create_contacts_extractor_agent(model, contacts_tool)
-    )
-    builder.add_node("applicator", create_applicator_agent(model, apply_tool))
+    g.add_edge(START, "supervisor")
 
-    # Start from supervisor
-    builder.add_edge(START, "supervisor")
+    g.add_edge("search_agent", "supervisor")
+    g.add_edge("filter_agent", "supervisor")
+    g.add_edge("apply_agent", "supervisor")
 
-    def route_from_supervisor(state: JobSearchState):
-        return state.get("current_agent", "done")
-
-    builder.add_conditional_edges(
+    g.add_conditional_edges(
         "supervisor",
-        route_from_supervisor,
+        supervisor_router,
         {
-            "job_search": "job_search",
-            "contacts_extractor": "contacts_extractor",
-            "applicator": "applicator",
+            "search": "search_agent",
+            "filter": "filter_agent",
+            "apply": "apply_agent",
             "done": END,
         },
     )
 
-    # After every worker agent, go back to supervisor
-    builder.add_edge("job_search", "supervisor")
-    builder.add_edge("contacts_extractor", "supervisor")
-    builder.add_edge("applicator", "supervisor")
-
-    graph = builder.compile()
-    return graph
+    return g.compile()
