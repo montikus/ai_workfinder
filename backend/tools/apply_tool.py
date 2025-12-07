@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import time
@@ -8,6 +9,12 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, EmailStr, Field, ValidationError
 
+from backend.tools.captcha_solver import (
+    CaptchaSolver,
+    extract_sitekey_from_page,
+    inject_captcha_solution
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,28 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class ApplyInput(BaseModel):
-    """
-    Input schema for the JustJoin "Apply" automation tool (Playwright).
-
-    Fields
-    ------
-    job_url:
-        Absolute URL to a justjoin.it offer page, e.g. "https://justjoin.it/job-offer/...".
-    full_name:
-        Candidate first + last name (as expected by the form).
-    email:
-        Candidate email used for application.
-    resume_path:
-        Path to a local file (PDF/DOCX) that will be uploaded via the "Add document" control.
-    attach_message:
-        Optional message to the employer (only if the form exposes this option).
-    headless:
-        Run browser in headless mode. Use False for local debugging.
-    timeout_sec:
-        Max time for each major step.
-    slow_mo_ms:
-        Slow down Playwright actions (useful for debugging).
-    """
+    """Input schema для JustJoin Apply automation tool."""
 
     job_url: str = Field(..., min_length=10, description="JustJoin offer URL.")
     full_name: str = Field(..., min_length=2, description="First and last name.")
@@ -46,7 +32,7 @@ class ApplyInput(BaseModel):
     resume_path: str = Field(..., min_length=1, description="Path to resume file.")
     attach_message: Optional[str] = Field(
         default=None,
-        description="Optional message to employer (if supported by the form).",
+        description="Optional message to employer.",
     )
     headless: bool = Field(default=True, description="Run browser headless.")
     timeout_sec: int = Field(default=45, ge=10, le=300, description="Timeout per step.")
@@ -54,16 +40,17 @@ class ApplyInput(BaseModel):
         default=180,
         ge=0,
         le=900,
-        description=(
-            "If captcha appears in headed mode, wait up to N seconds for manual solve. "
-            "0 disables waiting."
-        ),
+        description="Max wait for manual captcha solve if auto fails.",
     )
     slow_mo_ms: int = Field(default=0, ge=0, le=2000, description="Slow motion ms.")
+    use_captcha_solver: bool = Field(
+        default=True,
+        description="Use 2Captcha API for automatic captcha solving."
+    )
 
 
 class ApplyResult(BaseModel):
-    """JSON-serializable result returned by apply_to_job_tool."""
+    """JSON-serializable result."""
 
     ok: bool
     job_url: str
@@ -97,49 +84,84 @@ def _safe_filename(path_str: str) -> str:
 def _try_click(locator, *, timeout_ms: int = 2500) -> bool:
     try:
         locator.wait_for(state="visible", timeout=timeout_ms)
-        locator.click(timeout=timeout_ms)
+        locator.click(timeout=timeout_ms, no_wait_after=True)
         return True
     except Exception:
         return False
 
 
-def _dismiss_common_popups(page) -> None:
-    # try a few times because banner can appear with delay
-    for _ in range(25):  # ~7-8 seconds total
-        for pat in [r"accept all", r"accept", r"agree", r"allow all", r"akceptuj", r"zgadzam", r"zaakceptuj"]:
-            btn = page.get_by_role("button", name=re.compile(pat, re.I))
-            if _try_click(btn, timeout_ms=400):
-                return
 
-        # common uppercase button text fallback
-        btn2 = page.locator("button:has-text('ACCEPT ALL')")
-        if _try_click(btn2, timeout_ms=400):
-            return
 
-        page.wait_for_timeout(300)
+def _dismiss_popups_fast(page) -> None:
+
+    for _ in range(4):
+        selectors = [
+            "button:has-text('Accept all'):visible",
+            "button:has-text('ACCEPT ALL'):visible",
+            "button:has-text('Accept'):visible",
+            "button:has-text('Akceptuj'):visible",
+            "[id*='cookie'] button:visible",
+            ".cookie-banner button:visible",
+            "#cookiescript_accept"
+        ]
+
+        for sel in selectors:
+            btn = page.locator(sel).first
+            if btn.count() > 0:
+                try:
+                    btn.click(timeout=500, no_wait_after=True)
+                    logger.info("✅ Cookie баннер закрыт через кнопку")
+                    page.wait_for_timeout(500)
+                    return
+                except Exception:
+                    continue
+
+        page.wait_for_timeout(200)
+
+
+    try:
+        page.evaluate("""
+            () => {
+            
+                const cookieWrapper = document.getElementById('cookiescript_injected_wrapper');
+                if (cookieWrapper) {
+                    cookieWrapper.remove();
+                }
+
+             
+                const cookieBanners = document.querySelectorAll(
+                    '[id*="cookie"], [class*="cookie"], [id*="consent"], [class*="consent"]'
+                );
+                cookieBanners.forEach(el => {
+                    if (el.offsetHeight > 50) {  // только большие элементы
+                        el.remove();
+                    }
+                });
+
+        
+                document.body.style.overflow = 'auto';
+            }
+        """)
+        logger.info("✅ Cookie баннеры удалены через JavaScript")
+    except Exception as e:
+        logger.warning(f"Не удалось удалить баннеры через JS: {e}")
 
 
 def _is_captcha_present(page) -> bool:
-    """
-    Best-effort captcha detection.
-    We check VISIBILITY (not just existence) because recaptcha iframes
-    often remain in DOM even after a successful solve.
-    """
-    # 1) Visible captcha text on the page
     try:
         txt = page.locator(
-            ":text-matches('i am not a robot|captcha|verify you are human|are you human|"
-            "nie jestem robotem|potwierdź, że nie jesteś robotem|weryfikacja', 'i')"
+            ":text-matches('i am not a robot|captcha|verify you are human|"
+            "nie jestem robotem|potwierdź', 'i')"
         )
         if txt.count() > 0 and txt.first.is_visible():
             return True
     except Exception:
         pass
 
-    # 2) Visible reCAPTCHA frame
+
     try:
         fr = page.locator(
-            "iframe[src*='recaptcha'][src*='bframe'], "         # реальный challenge iframe
+            "iframe[src*='recaptcha'][src*='bframe'], "
             "iframe[src*='recaptcha'][src*='fallback'], "
             "iframe[src*='hcaptcha'][src*='checkbox'], "
             "iframe[src*='hcaptcha'][src*='challenge']"
@@ -149,7 +171,7 @@ def _is_captcha_present(page) -> bool:
     except Exception:
         pass
 
-    # 3) Common captcha containers
+
     try:
         cont = page.locator(
             ".g-recaptcha, div[id*='captcha'], div[class*='captcha'], [data-sitekey]"
@@ -161,6 +183,7 @@ def _is_captcha_present(page) -> bool:
 
     return False
 
+
 def _wait_for_captcha_clear(page, timeout_sec: int) -> bool:
     try:
         page.locator("iframe[src*='recaptcha'][src*='bframe']").wait_for(
@@ -171,153 +194,267 @@ def _wait_for_captcha_clear(page, timeout_sec: int) -> bool:
         return not _is_captcha_present(page)
 
 
+def _handle_captcha_with_solver(page, modal, captcha_wait_sec: int, use_solver: bool = True) -> bool:
+
+    if not _is_captcha_present(page):
+        logger.info("Капча не обнаружена")
+        return True
+
+    logger.warning("⚠️ Капча обнаружена!")
 
 
-
-def _open_apply_modal(page, timeout_ms: int) -> None:
-    """Click the visible Apply button and wait for the application modal."""
     try:
-        page.wait_for_load_state("domcontentloaded", timeout=timeout_ms)
+        page.screenshot(path="captcha_detected.png", full_page=True)
     except Exception:
         pass
 
-    _dismiss_common_popups(page)
 
-    # IMPORTANT: only visible candidates (avoid hidden duplicates)
-    apply_visible = page.locator(
-        ":is(button,a,[role='button']):has-text('Apply'):visible, "
-        ":is(button,a,[role='button']):has-text('Aplikuj'):visible"
-    )
+    if use_solver:
+        try:
+            solver = CaptchaSolver()
+            logger.info("🤖 Запускаем автоматическое решение капчи через 2Captcha...")
 
-    # Wait until we have at least one visible Apply button
-    apply_visible.first.wait_for(state="visible", timeout=timeout_ms)
 
-    # Click the most “likely CTA” (often last one in view)
-    btn = apply_visible.last
-    btn.scroll_into_view_if_needed(timeout=timeout_ms)
+            captcha_type = "recaptcha"
+            if page.locator("iframe[src*='hcaptcha']").count() > 0:
+                captcha_type = "hcaptcha"
+                logger.info("Обнаружена hCaptcha")
+            else:
+                logger.info("Обнаружена reCAPTCHA")
+
+
+            site_key = extract_sitekey_from_page(page)
+            if not site_key:
+                logger.error("❌ Не удалось найти sitekey капчи")
+                raise Exception("sitekey not found")
+
+            logger.info(f"Найден sitekey: {site_key[:20]}...")
+
+
+            if captcha_type == "recaptcha":
+                token = solver.solve_recaptcha_v2(page.url, site_key)
+            else:
+                token = solver.solve_hcaptcha(page.url, site_key)
+
+            if not token:
+                logger.error("❌ 2Captcha не вернула токен")
+                raise Exception("No token from solver")
+
+            logger.info("✅ Получен токен от 2Captcha")
+
+
+            success = inject_captcha_solution(page, token, captcha_type)
+            if success:
+                logger.info("✅ Капча решена автоматически!")
+                page.wait_for_timeout(1500)
+                return True
+            else:
+                raise Exception("Failed to inject token")
+
+        except Exception as e:
+            logger.error(f"❌ Ошибка автоматического решения капчи: {e}")
+            logger.warning("Падаем на ручное решение...")
+
+
+    if captcha_wait_sec > 0:
+        logger.warning(f"⏳ Ожидаем ручного решения капчи ({captcha_wait_sec}с)...")
+        return _wait_for_captcha_clear(page, captcha_wait_sec)
+
+    return False
+
+
+def _open_apply_modal_fast(page, timeout_ms: int) -> None:
 
     try:
-        btn.click(timeout=timeout_ms)
+        page.wait_for_load_state("domcontentloaded", timeout=timeout_ms // 2)
     except Exception:
-        btn.click(timeout=timeout_ms, force=True)
+        pass
 
-    # Modal header
-    page.get_by_text(re.compile(r"You apply for", re.I)).wait_for(state="visible", timeout=timeout_ms)
-
+    _dismiss_popups_fast(page)
 
 
+    apply_btn = page.locator(
+        "button[data-test-id*='apply']:visible, "
+        "button.MuiButton-containedPrimary:has-text('Apply'):visible, "
+        "a[href*='apply']:visible, "
+        ":is(button, [role='button']):has-text('Apply'):visible, "
+        ":is(button, [role='button']):has-text('Aplikuj'):visible"
+    )
+
+    try:
+        apply_btn.first.wait_for(state="visible", timeout=timeout_ms // 2)
+    except Exception:
+        logger.warning("Apply кнопка не найдена быстро, пробуем fallback...")
+        apply_btn = page.locator(":is(button,a):has-text('Apply'):visible")
+        apply_btn.first.wait_for(state="visible", timeout=timeout_ms)
+
+
+    btn = apply_btn.first
+    btn.scroll_into_view_if_needed(timeout=timeout_ms // 4)
+
+    try:
+        btn.click(timeout=2000, no_wait_after=True)
+    except Exception:
+        btn.click(timeout=timeout_ms, force=True, no_wait_after=True)
+
+
+    modal_locator = page.locator(
+        "[role='dialog']:visible, "
+        ".MuiDialog-root:visible, "
+        "div[class*='modal']:visible"
+    ).filter(has_text=re.compile(r"apply", re.I))
+
+    try:
+        modal_locator.first.wait_for(state="visible", timeout=3000)
+        logger.info("✅ Apply модалка открыта")
+    except Exception:
+        page.get_by_text(re.compile(r"You apply for", re.I)).wait_for(
+            state="visible", timeout=timeout_ms
+        )
 
 
 def _get_modal_root(page):
-    """Return a locator that represents the opened application modal."""
+
     dialog = page.locator("[role=dialog],[aria-modal=true]").filter(
-        has_text=re.compile(r"You apply for", re.I)
+        has_text=re.compile(r"You apply for|Apply", re.I)
     )
     if dialog.count() > 0:
         return dialog.first
 
-    # Fallback: container that includes the header + at least one input
     root = page.locator("div:has-text('You apply for')").filter(
         has=page.locator("input")
     )
     if root.count() > 0:
         return root.first
 
-    # Worst-case: use the whole page (still works, just less strict)
     return page.locator("body")
 
 
-def _fill_text_field(modal, *, label: str, value: str, placeholder_hint: Optional[str] = None) -> None:
+def _fill_text_field_fast(modal, *, label: str, value: str, placeholder_hint: Optional[str] = None) -> None:
+
     try:
         modal.get_by_label(label, exact=False).fill(value)
+        logger.info(f"✅ Поле '{label}' заполнено по label")
         return
     except Exception:
         pass
 
+
     if placeholder_hint:
-        loc = modal.locator(f"input[placeholder*='{placeholder_hint}']")
+        loc = modal.locator(f"input[placeholder*='{placeholder_hint}' i]")
         if loc.count() > 0:
             loc.first.fill(value)
+            logger.info(f"✅ Поле '{label}' заполнено по placeholder")
             return
+
 
     label_loc = modal.get_by_text(label, exact=False)
     if label_loc.count() > 0:
         near = label_loc.first.locator("xpath=following::input[1]")
         near.fill(value)
+        logger.info(f"✅ Поле '{label}' заполнено рядом с текстом")
         return
 
     raise RuntimeError(f"Could not locate field: {label}")
 
 
-def _upload_resume(page, modal, resume_path: str, timeout_ms: int) -> None:
-    """Upload resume - supports hidden <input type=file> or FileChooser flow."""
+def _upload_resume_fast(page, modal, resume_path: str, timeout_ms: int) -> None:
+
     p = str(Path(resume_path).expanduser())
+
 
     file_inputs = modal.locator("input[type='file']")
     if file_inputs.count() > 0:
-        file_inputs.first.set_input_files(p, timeout=timeout_ms)
+        file_inputs.first.set_input_files(p, timeout=timeout_ms // 2)
+        logger.info("✅ Резюме загружено напрямую")
         return
+
 
     add_doc = modal.get_by_text("Add document", exact=False)
     try:
-        with page.expect_file_chooser(timeout=timeout_ms) as fc_info:
-            add_doc.click(timeout=timeout_ms)
+        with page.expect_file_chooser(timeout=timeout_ms // 2) as fc_info:
+            add_doc.click(timeout=timeout_ms // 2, no_wait_after=True)
         fc_info.value.set_files(p)
+        logger.info("✅ Резюме загружено через file chooser")
         return
     except Exception:
         pass
 
-    # Last attempt: click upload area then re-scan for input
+    # Клик на область загрузки
     upload_area = modal.locator(":has-text('Add document')")
-    _try_click(upload_area.first, timeout_ms=timeout_ms)
+    _try_click(upload_area.first, timeout_ms=timeout_ms // 2)
     file_inputs = modal.locator("input[type='file']")
     if file_inputs.count() > 0:
-        file_inputs.first.set_input_files(p, timeout=timeout_ms)
+        file_inputs.first.set_input_files(p, timeout=timeout_ms // 2)
+        logger.info("✅ Резюме загружено после клика на область")
         return
 
-    raise RuntimeError("Could not upload resume (no file input / file chooser found).")
+    raise RuntimeError("Could not upload resume")
 
 
-def _check_required_consent(modal, timeout_ms: int) -> None:
-    """
-    Tick the required consent checkbox (Polish/English fallbacks).
-    """
+def _check_consent_fast(modal, timeout_ms: int) -> None:
+
     phrases = [
-        re.compile(r"Wyrażam zgodę na przetwarzanie moich danych", re.I),
+        re.compile(r"Wyrażam zgodę na przetwarzanie", re.I),
         re.compile(r"I\s*agree.*processing.*data", re.I),
-        re.compile(r"consent.*processing.*data", re.I),
+        re.compile(r"consent.*processing", re.I),
     ]
 
-    # Label-based first (most reliable for checkboxes)
+    # По label
     for ph in phrases:
         try:
-            modal.get_by_label(ph).check(timeout=timeout_ms)
-            return
+            checkbox = modal.get_by_label(ph)
+
+            if checkbox.count() > 0:
+
+                parent_text = checkbox.first.locator("xpath=ancestor::label[1]").inner_text().lower()
+                if "marketing" in parent_text or "newsletter" in parent_text:
+                    logger.info("⏭️ Пропускаем маркетинговый чекбокс")
+                    continue
+
+                checkbox.check(timeout=timeout_ms // 2)
+                logger.info("✅ Согласие проставлено по label")
+                return
         except Exception:
             pass
 
-    # Text-click fallback
+
     for ph in phrases:
         txt = modal.get_by_text(ph)
         if txt.count() > 0:
-            txt.first.click(timeout=timeout_ms)
-            return
+            try:
+                text_content = txt.first.inner_text().lower()
+                if "marketing" in text_content or "newsletter" in text_content:
+                    continue
 
-    # "Nearby input" fallback
+                txt.first.click(timeout=timeout_ms // 2)
+                logger.info("✅ Согласие проставлено кликом по тексту")
+                return
+            except Exception:
+                pass
+
     for ph in phrases:
         txt = modal.get_by_text(ph)
         if txt.count() > 0:
             container = txt.first.locator("xpath=ancestor::*[self::label or self::div][1]")
             cb = container.locator("input[type='checkbox']")
             if cb.count() > 0:
-                cb.first.check(timeout=timeout_ms)
-                return
+                try:
 
-    raise RuntimeError("Could not find the required consent checkbox.")
+                    is_required = cb.first.get_attribute("required") is not None
+                    parent_text = container.inner_text().lower()
+
+                    if is_required or ("marketing" not in parent_text and "newsletter" not in parent_text):
+                        cb.first.check(timeout=timeout_ms // 2)
+                        logger.info("✅ Согласие проставлено через чекбокс")
+                        return
+                except Exception:
+                    pass
+
+    raise RuntimeError("Could not find required consent checkbox")
 
 
 def _is_enabled(locator) -> bool:
-    """Best-effort enabled check for buttons."""
     try:
         if locator.is_disabled():
             return False
@@ -338,10 +475,37 @@ def _is_enabled(locator) -> bool:
     return True
 
 
-def _submit_application(modal, timeout_ms: int) -> None:
-    deadline = time.time() + (timeout_ms / 1000.0)
+def _submit_fast(modal, timeout_ms: int) -> None:
 
-    # 1) самый надёжный вариант - submit-кнопка внутри формы
+    page = modal.page
+
+
+    try:
+        page.evaluate("""
+            () => {
+        
+                const overlays = document.querySelectorAll(
+                    '#cookiescript_injected_wrapper, ' +
+                    '[id*="cookie"], [class*="cookie"], ' +
+                    '[id*="overlay"], [class*="overlay"], ' +
+                    '[id*="backdrop"], [class*="backdrop"]'
+                );
+                overlays.forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    const zIndex = parseInt(style.zIndex) || 0;
+             
+                    if (zIndex > 100 || el.id.includes('cookie')) {
+                        el.remove();
+                    }
+                });
+
+                document.body.style.pointerEvents = 'auto';
+            }
+        """)
+        logger.info("✅ Оверлеи удалены перед submit")
+    except Exception as e:
+        logger.warning(f"Не удалось удалить оверлеи: {e}")
+
     def pick_button():
         btn = modal.locator("button[type='submit']:visible").filter(
             has_text=re.compile(r"Apply|Aplikuj", re.I)
@@ -349,53 +513,58 @@ def _submit_application(modal, timeout_ms: int) -> None:
         if btn.count() > 0:
             return btn.last
 
-        # 2) fallback
+
         btn = modal.locator(
             "button:visible:has-text('Apply'), "
             "button:visible:has-text('Aplikuj'), "
-            ":is(button,[role='button']):visible:has-text('Apply'), "
-            ":is(button,[role='button']):visible:has-text('Aplikuj')"
+            ":is(button,[role='button']):visible:has-text('Apply')"
         )
         if btn.count() == 0:
-            raise RuntimeError("Final Apply button not found in modal (visible).")
+            raise RuntimeError("Submit button not found")
         return btn.last
 
+    deadline = time.time() + (timeout_ms / 1000.0)
     last_err = None
+
     while time.time() < deadline:
         try:
             btn = pick_button()
-            btn.scroll_into_view_if_needed(timeout=timeout_ms)
+            btn.scroll_into_view_if_needed(timeout=timeout_ms // 4)
 
             if not _is_enabled(btn):
-                modal.page.wait_for_timeout(250)
+                page.wait_for_timeout(250)
                 continue
 
-            # Важно: сначала пробный клик - если перекрыто оверлеем, получишь исключение
-            btn.click(timeout=1500, trial=True)
-            btn.click(timeout=timeout_ms)
-            return
+
+            try:
+                btn.click(timeout=2000, no_wait_after=True)
+                logger.info("✅ Submit нажат (обычный клик)")
+                return
+            except Exception:
+
+                btn.click(timeout=timeout_ms, force=True, no_wait_after=True)
+                logger.info("✅ Submit нажат (force клик)")
+                return
+
         except Exception as e:
             last_err = e
             try:
-                modal.page.wait_for_timeout(250)
+                page.wait_for_timeout(250)
             except Exception:
                 time.sleep(0.25)
 
-    raise RuntimeError(f"Could not click final Apply (still disabled/covered). Last error: {last_err}")
-
-
-
+    raise RuntimeError(f"Could not click submit. Last error: {last_err}")
 
 
 def _wait_for_confirmation(page, modal, timeout_ms: int) -> bool:
-    # 1) Modal disappears
+
     try:
         modal.wait_for(state="hidden", timeout=timeout_ms)
         return True
     except Exception:
         pass
 
-    # 2) Success-ish text appears
+
     success = page.get_by_text(
         re.compile(r"thank you|application sent|sent|success|wysłano|dziękuj", re.I)
     )
@@ -407,8 +576,9 @@ def _wait_for_confirmation(page, modal, timeout_ms: int) -> bool:
 
 
 def _collect_visible_errors(modal) -> Optional[str]:
+
     candidates = modal.locator(
-        ":text-matches('error|required|invalid|błąd|wymagane|nieprawidł', 'i')"
+        ":text-matches('error|required|invalid|błąd|wymagane', 'i')"
     )
     try:
         texts = []
@@ -423,35 +593,21 @@ def _collect_visible_errors(modal) -> Optional[str]:
     return None
 
 
-# -----------------------------
-# Public tool
-# -----------------------------
 
 
 def apply_to_job_tool(
-    job_url: str,
-    full_name: str,
-    email: str,
-    resume_path: str,
-    attach_message: Optional[str] = None,
-    headless: bool = True,
-    timeout_sec: int = 45,
-    captcha_wait_sec: int = 180,
-    slow_mo_ms: int = 0,
+        job_url: str,
+        full_name: str,
+        email: str,
+        resume_path: str,
+        attach_message: Optional[str] = None,
+        headless: bool = True,
+        timeout_sec: int = 45,
+        captcha_wait_sec: int = 180,
+        slow_mo_ms: int = 0,
+        use_captcha_solver: bool = True,  # НОВЫЙ ПАРАМЕТР
 ) -> Dict[str, Any]:
-    """
-    Tool: open a justjoin.it job offer and apply via the in-platform "Apply" modal.
 
-    Steps:
-    1) Open the offer page (job_url)
-    2) Click "Apply"
-    3) Fill required fields (name, email)
-    4) Upload resume (resume_path)
-    5) Tick required consent checkbox
-    6) Click final "Apply" and wait for success/error
-
-    Returns JSON-serializable dict and never raises exceptions outward.
-    """
     try:
         validated = ApplyInput(
             job_url=job_url,
@@ -463,6 +619,7 @@ def apply_to_job_tool(
             timeout_sec=timeout_sec,
             captcha_wait_sec=captcha_wait_sec,
             slow_mo_ms=slow_mo_ms,
+            use_captcha_solver=use_captcha_solver,
         )
     except ValidationError as exc:
         logger.warning("ApplyInput validation failed: %s", exc)
@@ -496,14 +653,17 @@ def apply_to_job_tool(
             job_url=validated.job_url,
             applied=False,
             step="dependencies",
-            error="Playwright is not installed. Run: poetry add playwright && poetry run playwright install chromium",
+            error="Playwright not installed. Run: poetry add playwright && poetry run playwright install chromium",
         ).model_dump()
 
     debug: Dict[str, Any] = {"resume_filename": _safe_filename(validated.resume_path)}
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=validated.headless, slow_mo=validated.slow_mo_ms)
+            browser = p.chromium.launch(
+                headless=validated.headless,
+                slow_mo=validated.slow_mo_ms
+            )
             context = browser.new_context(viewport={"width": 1280, "height": 800})
             page = context.new_page()
             page.set_default_timeout(timeout_ms)
@@ -512,11 +672,12 @@ def apply_to_job_tool(
 
             step = "open_offer"
             page.goto(validated.job_url, wait_until="domcontentloaded", timeout=timeout_ms)
-            _dismiss_common_popups(page)
+            _dismiss_popups_fast(page)
+
 
             step = "open_apply_modal"
             try:
-                _open_apply_modal(page, timeout_ms=timeout_ms)
+                _open_apply_modal_fast(page, timeout_ms=timeout_ms)
             except Exception as e:
                 try:
                     page.screenshot(path="apply_open_modal_fail.png", full_page=True)
@@ -524,99 +685,94 @@ def apply_to_job_tool(
                 except Exception:
                     pass
                 raise
+
             modal = _get_modal_root(page)
 
-            step = "fill_form"
-            _fill_text_field(modal, label="First and last name", value=validated.full_name, placeholder_hint="first")
-            _fill_text_field(modal, label="Email", value=str(validated.email), placeholder_hint="email")
 
-            # Optional message (best-effort)
+            _dismiss_popups_fast(page)
+
+
+            step = "fill_form"
+            _fill_text_field_fast(modal, label="First and last name", value=validated.full_name,
+                                  placeholder_hint="first")
+            _fill_text_field_fast(modal, label="Email", value=str(validated.email), placeholder_hint="email")
+
+
             if validated.attach_message:
                 try:
-                    toggle = modal.get_by_text("Attach a message for the employer", exact=False)
+                    toggle = modal.get_by_text("Attach a message", exact=False)
                     _try_click(toggle, timeout_ms=1200)
                     ta = modal.locator("textarea")
                     if ta.count() > 0:
                         ta.first.fill(validated.attach_message)
                 except Exception:
-                    logger.info("Attach-message flow not available; continuing.")
+                    logger.info("Attach-message не доступен")
+
 
             step = "upload_resume"
-            _upload_resume(page, modal, validated.resume_path, timeout_ms=timeout_ms)
+            _upload_resume_fast(page, modal, validated.resume_path, timeout_ms=timeout_ms)
+
 
             step = "consent_checkbox"
-            _check_required_consent(modal, timeout_ms=timeout_ms)
+            _check_consent_fast(modal, timeout_ms=timeout_ms)
+
+
+            page.wait_for_timeout(500)
+            _dismiss_popups_fast(page)
+
 
             step = "submit"
-            _submit_application(modal, timeout_ms=timeout_ms)
+            _submit_fast(modal, timeout_ms=timeout_ms)
+
 
             if _wait_for_confirmation(page, modal, timeout_ms=8000):
-                return success
+                browser.close()
+                return ApplyResult(
+                    ok=True,
+                    job_url=validated.job_url,
+                    applied=True,
+                    step="done",
+                    debug=debug,
+                ).model_dump()
+
 
             if _is_captcha_present(page):
                 debug["captcha_detected"] = True
-                try:
-                    page.screenshot(path="apply_captcha.png", full_page=True)
-                    debug["screenshot"] = "apply_captcha.png"
-                except Exception:
-                    pass
+                logger.warning("⚠️ Обнаружена капча после submit")
 
-                if (not validated.headless) and validated.captcha_wait_sec > 0:
-                    ok = _wait_for_captcha_clear(page, validated.captcha_wait_sec)
-                    if not ok:
-                        return ApplyResult(
-                            ok=False,
-                            job_url=validated.job_url,
-                            applied=False,
-                            step="captcha",
-                            error="Captcha detected and not solved in time.",
-                            debug=debug,
-                        ).model_dump()
+                captcha_solved = _handle_captcha_with_solver(
+                    page=page,
+                    modal=modal,
+                    captcha_wait_sec=validated.captcha_wait_sec,
+                    use_solver=validated.use_captcha_solver
+                )
 
-                    # Give UI a moment to re-enable button / re-render after captcha
-                    page.wait_for_timeout(700)
-
-                    # Re-locate modal (DOM often changes after captcha)
+                if not captcha_solved:
                     try:
-                        modal = _get_modal_root(page)
-                    except Exception:
-                        modal = page
-
-                    # Sometimes submit already went through after captcha
-                    try:
-                        if _wait_for_confirmation(page, modal, timeout_ms=8000):
-                            browser.close()
-                            return ApplyResult(
-                                ok=True,
-                                job_url=validated.job_url,
-                                applied=True,
-                                step="done",
-                                debug=debug,
-                            ).model_dump()
+                        page.screenshot(path="captcha_unsolved.png", full_page=True)
+                        debug["screenshot"] = "captcha_unsolved.png"
                     except Exception:
                         pass
 
-                    # Try clicking final Apply again (often required)
-                    try:
-                        modal = _get_modal_root(page)  # заново после капчи
-                        _submit_application(modal, timeout_ms=timeout_ms)
-                    except Exception:
-                        try:
-                            page.screenshot(path="apply_after_captcha_fail.png", full_page=True)
-                            debug["screenshot"] = "apply_after_captcha_fail.png"
-                        except Exception:
-                            pass
-
-
-                else:
+                    browser.close()
                     return ApplyResult(
                         ok=False,
                         job_url=validated.job_url,
                         applied=False,
                         step="captcha",
-                        error="Captcha detected. Run headed and solve it manually or increase captcha_wait_sec.",
+                        error="Капча не решена (ни автоматически, ни вручную)",
                         debug=debug,
                     ).model_dump()
+
+
+                logger.info("✅ Капча решена, повторяем submit...")
+                page.wait_for_timeout(1000)
+
+                try:
+                    modal = _get_modal_root(page)
+                    _submit_fast(modal, timeout_ms=timeout_ms)
+                except Exception as e:
+                    logger.warning(f"Не удалось повторить submit после капчи: {e}")
 
 
             step = "confirm"
@@ -624,13 +780,14 @@ def apply_to_job_tool(
                 page.wait_for_load_state("domcontentloaded", timeout=timeout_ms)
             except Exception:
                 pass
-            page.wait_for_timeout(800) 
+            page.wait_for_timeout(1000)
+
             try:
                 modal = _get_modal_root(page)
             except Exception:
                 pass
-            success = _wait_for_confirmation(page, modal, timeout_ms=20000)
 
+            success = _wait_for_confirmation(page, modal, timeout_ms=20000)
 
             if success:
                 browser.close()
@@ -642,13 +799,13 @@ def apply_to_job_tool(
                     debug=debug,
                 ).model_dump()
 
+
             err_text = _collect_visible_errors(modal)
             debug["modal_errors"] = err_text
 
-            screenshot_path = Path("apply_failure.png")
             try:
-                page.screenshot(path=str(screenshot_path), full_page=True)
-                debug["screenshot"] = str(screenshot_path)
+                page.screenshot(path="apply_failure.png", full_page=True)
+                debug["screenshot"] = "apply_failure.png"
             except Exception:
                 pass
 
@@ -658,7 +815,7 @@ def apply_to_job_tool(
                 job_url=validated.job_url,
                 applied=False,
                 step="confirm",
-                error=err_text or "No success confirmation detected (modal still open).",
+                error=err_text or "No success confirmation detected",
                 debug=debug,
             ).model_dump()
 
@@ -675,27 +832,20 @@ def apply_to_job_tool(
 
 
 if __name__ == "__main__":
-    # Minimal manual test runner (adjust params to your needs)
     import json
     import argparse
 
-    parser = argparse.ArgumentParser(description="Apply to a justjoin.it job offer via Playwright.")
-    parser.add_argument("--url", required=True, help="Job offer URL on justjoin.it")
-    parser.add_argument("--name", required=True, help="First and last name")
+    parser = argparse.ArgumentParser(description="Apply to JustJoin job with auto captcha solver")
+    parser.add_argument("--url", required=True, help="Job URL")
+    parser.add_argument("--name", required=True, help="Full name")
     parser.add_argument("--email", required=True, help="Email")
-    parser.add_argument("--resume", required=True, help="Path to resume file")
-    parser.add_argument("--message", default=None, help="Optional message to employer")
-    parser.add_argument("--headed", action="store_true", help="Run with visible browser window (not headless)")
-    parser.add_argument("--slow", type=int, default=0, help="Slow motion ms (debug)")
-    parser.add_argument("--timeout", type=int, default=45, help="Timeout per step in seconds")
-    parser.add_argument(
-        "--captcha-wait",
-        dest="captcha_wait_sec",
-        type=int,
-        default=180,
-        help="Seconds to wait for manual captcha solve in headed mode (0 disables).",
-    )
-
+    parser.add_argument("--resume", required=True, help="Resume path")
+    parser.add_argument("--message", default=None, help="Optional message")
+    parser.add_argument("--headed", action="store_true", help="Run with visible browser")
+    parser.add_argument("--slow", type=int, default=0, help="Slow motion ms")
+    parser.add_argument("--timeout", type=int, default=45, help="Timeout seconds")
+    parser.add_argument("--captcha-wait", type=int, default=180, help="Manual captcha wait")
+    parser.add_argument("--no-solver", action="store_true", help="Disable auto captcha solver")
 
     args = parser.parse_args()
 
@@ -708,6 +858,7 @@ if __name__ == "__main__":
         headless=not args.headed,
         slow_mo_ms=args.slow,
         timeout_sec=args.timeout,
-        captcha_wait_sec=args.captcha_wait_sec,
+        captcha_wait_sec=args.captcha_wait,
+        use_captcha_solver=not args.no_solver,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))

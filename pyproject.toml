@@ -23,6 +23,7 @@ email-validator = "^2.3.0"
 langchain-openai = "^1.1.0"
 openai = "^2.9.0"
 python-dotenv = "^1.2.1"
+2captcha-python = "^2.0.2"
 
 [tool.poetry.dev-dependencies]
 

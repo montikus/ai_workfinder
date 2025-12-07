@@ -11,8 +11,9 @@
   "resume_path": "backend/tools/test_cv.pdf",
 
   "max_apply": 3,
+  "use_captcha_solver": true,
   "headless": false,
-  "timeout_sec": 45,
-  "captcha_wait_sec": 180,
+  "captcha_wait_sec": 30,
+  "timeout_sec": 30,
   "slow_mo_ms": 0
 }
