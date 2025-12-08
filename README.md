@@ -20,3 +20,11 @@ Functionality:
    - File storaging
    - System for applying search parametres
  
+Как запустить приложение
+Фронтенд:
+
+npm run dev
+
+Бекенд:
+
+uvicorn main:app --reload --port 8001
