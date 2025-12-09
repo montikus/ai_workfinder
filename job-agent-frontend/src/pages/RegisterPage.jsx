@@ -23,7 +23,7 @@ export function RegisterPage() {
     
     ustawLadowanie(true);
     try {
-      console.log(haslo)
+      // console.log(haslo)
       await zarejestruj({ email, password: haslo });
       navigate('/login');
     } catch (err) {

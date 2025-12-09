@@ -163,7 +163,7 @@ export function ProfilePage() {
         )}
       </div>
 
-      <div className="card">
+      {/* <div className="card">
         <h2>Gmail</h2>
         <p>Status: {gmailPodlaczony ? 'Connected' : 'Not connected'}</p>
         {!gmailPodlaczony && (
@@ -171,7 +171,7 @@ export function ProfilePage() {
             Connect Gmail
           </button>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

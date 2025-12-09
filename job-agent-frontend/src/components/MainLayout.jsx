@@ -14,7 +14,7 @@ export function MainLayout() {
   return (
     <div className="main-layout">
       <aside className="sidebar">
-        <h2>Job Agent</h2>
+        <h2>Ai Workfinder</h2>
         <nav>
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active-link' : '')}>
             Dashboard
