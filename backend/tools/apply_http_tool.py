@@ -189,7 +189,6 @@ def apply_to_job_http_tool(
         "Accept": "application/json, text/plain, */*",
         "Origin": "https://justjoin.it",
         "Referer": "https://justjoin.it/",
-        # You can keep UA simple; main thing is required headers
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) JobAgentBot/0.2",
     }
 

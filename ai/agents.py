@@ -202,15 +202,12 @@ def make_apply_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
 
                 logger.info("Agent3(apply-http) [%d/%d] applying to %s", idx, len(jobs), url)
 
-                # NOTE:
-                # apply_http_wrapper_tool -> валидирует вход и вызывает apply_to_job_http_tool
-                # apply_to_job_http_tool сам возьмёт JJ_* заголовки из backend/tools/_justjoin_headers_local.py
                 res = apply_http_wrapper_tool(
                     job_url=url,
                     full_name=full_name,
                     email=email,
                     resume_path=resume_path,
-                    message=None,  # можно сделать state.get("apply_message") если захотите
+                    message=None,  
                     marketing_consent_accepted=False,
                     source="apply_form",
                     timeout_sec=timeout_sec,

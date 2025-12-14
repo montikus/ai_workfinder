@@ -38,14 +38,8 @@ def apply_http_wrapper_tool(
     marketing_consent_accepted: bool = False,
     source: str = "apply_form",
     timeout_sec: int = 30,
-    session: Optional[requests.Session] = None,  # чтобы Agent3 мог переиспользовать session
+    session: Optional[requests.Session] = None,  
 ) -> Dict[str, Any]:
-    """
-    Wrapper tool for Agent3:
-    - валидирует вход
-    - зовёт чистую логику: apply_to_job_http_tool(...)
-    - возвращает dict
-    """
     try:
         v = ApplyHTTPWrapperInput(
             job_url=job_url,
@@ -132,7 +126,7 @@ class JustJoinApplyHttpTool(BaseTool):
             marketing_consent_accepted=marketing_consent_accepted,
             source=source,
             timeout_sec=timeout_sec,
-            session=None,  # BaseTool не тащит session
+            session=None, 
         )
         return json.dumps(res, ensure_ascii=False)
 

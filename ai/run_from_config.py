@@ -12,18 +12,15 @@ from ai.graph_builder import build_graph
 
 
 def _project_root() -> Path:
-    # ai/run_from_config.py -> parents[1] == корень проекта
     return Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
     root = _project_root()
 
-    # 1) .env всегда из корня проекта
     env_path = root / ".env"
     load_dotenv(env_path)
 
-    # 2) config.json всегда из корня проекта (или можно переопределить env-переменной)
     cfg_path = Path(os.getenv("AI_WORKFINDER_CONFIG", str(root / "config.json"))).resolve()
 
     if not cfg_path.exists():
@@ -63,7 +60,6 @@ def main() -> int:
         resume_path=cfg["resume_path"],
 
         headless=cfg.get("headless", True),
-        # timeout_sec дальше будет использован и для HTTP apply (как ты хотел)
         timeout_sec=cfg.get("timeout_sec", 30),
         captcha_wait_sec=cfg.get("captcha_wait_sec", 180),
         slow_mo_ms=cfg.get("slow_mo_ms", 0),
