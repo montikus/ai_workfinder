@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Callable
 
+import requests
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from backend.tools.parser_crawler_wrapper import justjoin_search_tool
 from backend.tools.one_click_apply_wrapper import one_click_apply_wrapper_tool
-from backend.tools.apply_tool import apply_to_job_tool
+from backend.tools.apply_http_wrapper import apply_http_wrapper_tool  # <-- NEW WRAPPER
 
 from .state import WorkflowState
 
@@ -22,11 +23,6 @@ def _trace_append(state: WorkflowState, item: Dict[str, Any]) -> Dict[str, Any]:
 
 def make_supervisor_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
     def supervisor_node(state: WorkflowState) -> Dict[str, Any]:
-        """
-        Supervisor orchestrates phases and routes to the next agent.
-        It does NOT rewrite/transform other agents' outputs, only routes.
-        LLM is used here just to validate connection + produce a tiny routing note.
-        """
         phase = state.get("phase", "init")
         err = state.get("error")
 
@@ -34,7 +30,7 @@ def make_supervisor_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
             logger.error("Supervisor sees error, stopping. error=%s", err)
             return {"phase": "done", "status": "error"}
 
-        # LLM ping (real call) - very small + cheap
+        # LLM ping (optional)
         try:
             msg = llm.invoke(
                 [
@@ -44,7 +40,6 @@ def make_supervisor_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
             )
             note = getattr(msg, "content", "") if msg else ""
         except Exception as e:
-            # if LLM fails, we still can run deterministic pipeline
             note = f"llm_error:{e}"
 
         base_trace = _trace_append(state, {"agent": "supervisor", "phase": phase, "note": note})
@@ -83,18 +78,13 @@ def supervisor_router(state: WorkflowState) -> str:
 
 def make_search_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
     def search_agent_node(state: WorkflowState) -> Dict[str, Any]:
-        """
-        Agent1: uses specialization + experience_level (+ optional location),
-        calls justjoin_search_tool, returns jobs list.
-        LLM is used only as a small preflight (doesn't alter tool output).
-        """
         try:
             specialization = state["specialization"]
             experience_level = state.get("experience_level")
             location = state.get("location")
             limit = int(state.get("limit", 20))
 
-            # LLM preflight (real call)
+            # LLM preflight (optional)
             try:
                 msg = llm.invoke(
                     [
@@ -106,8 +96,10 @@ def make_search_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
             except Exception as e:
                 note = f"llm_error:{e}"
 
-            logger.info("Agent1(search) -> justjoin_search_tool spec=%s exp=%s loc=%s limit=%s",
-                        specialization, experience_level, location, limit)
+            logger.info(
+                "Agent1(search) -> justjoin_search_tool spec=%s exp=%s loc=%s limit=%s",
+                specialization, experience_level, location, limit
+            )
 
             jobs: List[Dict[str, Any]] = justjoin_search_tool(
                 specialization=specialization,
@@ -129,13 +121,10 @@ def make_search_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
 
 def make_one_click_filter_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
     def one_click_filter_agent_node(state: WorkflowState) -> Dict[str, Any]:
-        """
-        Agent2: takes jobs from Agent1 and calls one_click_apply_wrapper_tool.
-        LLM is used only as a small preflight (doesn't alter tool output).
-        """
         try:
             jobs = state.get("jobs", []) or []
 
+            # LLM preflight (optional)
             try:
                 msg = llm.invoke(
                     [
@@ -165,9 +154,10 @@ def make_one_click_filter_agent_node(llm) -> Callable[[WorkflowState], Dict[str,
 def make_apply_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
     def apply_agent_node(state: WorkflowState) -> Dict[str, Any]:
         """
-        Agent3: applies using Playwright tool.
-        CV/resume_path is used ONLY here.
-        LLM is used only as a small preflight (doesn't alter tool output).
+        Agent3: applies via pure HTTP (POST multipart/form-data) to JustJoin API.
+        - Takes list from state["one_click_jobs"]
+        - For each job["url"] calls apply_http_wrapper_tool(...)
+        - Reuses ONE requests.Session for keep-alive/cookies
         """
         try:
             jobs = state.get("one_click_jobs", []) or []
@@ -178,55 +168,71 @@ def make_apply_agent_node(llm) -> Callable[[WorkflowState], Dict[str, Any]]:
             email = state["email"]
             resume_path = state["resume_path"]
 
-            headless = bool(state.get("headless", True))
-            timeout_sec = int(state.get("timeout_sec", 45))
-            captcha_wait_sec = int(state.get("captcha_wait_sec", 180))
-            slow_mo_ms = int(state.get("slow_mo_ms", 0))
+            # We reuse existing CLI param "timeout_sec" as HTTP request timeout (seconds)
+            timeout_sec = int(state.get("timeout_sec", 30))
 
+            # LLM preflight (optional)
             try:
                 msg = llm.invoke(
                     [
                         SystemMessage(content="You are Agent3. Reply in 1 line."),
-                        HumanMessage(content=f"Apply to {len(jobs)} jobs. Candidate={full_name}, email={email}."),
+                        HumanMessage(content=f"HTTP-apply to {len(jobs)} jobs. Candidate={full_name}, email={email}."),
                     ]
                 )
                 note = getattr(msg, "content", "") if msg else ""
             except Exception as e:
                 note = f"llm_error:{e}"
 
-            logger.info("Agent3(apply) starting: jobs=%d headless=%s timeout=%s captcha_wait=%s slow_mo=%s",
-                        len(jobs), headless, timeout_sec, captcha_wait_sec, slow_mo_ms)
+            logger.info("Agent3(apply-http) starting: jobs=%d timeout=%ss", len(jobs), timeout_sec)
+
+            sess = requests.Session()
 
             results: List[Dict[str, Any]] = []
             for idx, job in enumerate(jobs, start=1):
                 url = (job or {}).get("url")
                 if not url:
-                    results.append({"ok": False, "applied": False, "job_url": None, "step": "validation", "error": "missing_url"})
+                    results.append({
+                        "ok": False,
+                        "applied": False,
+                        "job_url": None,
+                        "step": "validation",
+                        "error": "missing_url",
+                    })
                     continue
 
-                logger.info("Agent3(apply) [%d/%d] applying to %s", idx, len(jobs), url)
+                logger.info("Agent3(apply-http) [%d/%d] applying to %s", idx, len(jobs), url)
 
-                res = apply_to_job_tool(
+                # NOTE:
+                # apply_http_wrapper_tool -> валидирует вход и вызывает apply_to_job_http_tool
+                # apply_to_job_http_tool сам возьмёт JJ_* заголовки из backend/tools/_justjoin_headers_local.py
+                res = apply_http_wrapper_tool(
                     job_url=url,
                     full_name=full_name,
                     email=email,
                     resume_path=resume_path,
-                    attach_message=None,
-                    headless=headless,
+                    message=None,  # можно сделать state.get("apply_message") если захотите
+                    marketing_consent_accepted=False,
+                    source="apply_form",
                     timeout_sec=timeout_sec,
-                    captcha_wait_sec=captcha_wait_sec,
-                    slow_mo_ms=slow_mo_ms,
+                    session=sess,
                 )
+
                 if not isinstance(res, dict):
-                    res = {"ok": False, "applied": False, "job_url": url, "step": "runtime", "error": "non_dict_result"}
+                    res = {
+                        "ok": False,
+                        "applied": False,
+                        "job_url": url,
+                        "step": "runtime",
+                        "error": "non_dict_result",
+                    }
 
                 results.append(res)
 
-            trace = _trace_append(state, {"agent": "agent3_apply", "note": note, "attempted": len(results)})
+            trace = _trace_append(state, {"agent": "agent3_apply_http", "note": note, "attempted": len(results)})
             return {**trace, "apply_results": results, "phase": "after_apply"}
 
         except Exception as exc:
-            logger.exception("Agent3(apply) failed: %s", exc)
+            logger.exception("Agent3(apply-http) failed: %s", exc)
             return {"error": f"apply_agent_failed: {exc}", "phase": "error", "status": "error"}
 
     return apply_agent_node
