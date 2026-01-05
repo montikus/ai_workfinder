@@ -1,3 +1,4 @@
+
 # ai_workfinder
 work finder with ai functionality
 
@@ -28,3 +29,4 @@ npm run dev
 Бекенд:
 
 uvicorn app.main:app --reload --port 8001
+
