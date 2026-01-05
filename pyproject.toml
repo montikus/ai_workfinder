@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "ai_workfinder"
+version = "0.1.0"
+description = ""
+authors = ["MaximPyanin <maximpyanin@icloud.com>"]
+
+packages = [
+    { include = "ai" },
+    { include = "backend" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langgraph = "^1.0.3"
+langchain-core = "^1.0.5"
+typing-extensions = "^4.15.0"
+pydantic = "^2.12.4"
+langchain-ollama = "^1.0.0"
+requests = "^2.32.5"
+beautifulsoup4 = "^4.14.2"
+playwright = "^1.56.0"
+email-validator = "^2.3.0"
+langchain-openai = "^1.1.0"
+openai = "^2.9.0"
+python-dotenv = "^1.2.1"
+2captcha-python = "^2.0.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
