@@ -10,6 +10,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -25,13 +32,22 @@
   &quot;keyToString&quot;: {
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;Python.pip.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
     &quot;Python.uvicorn.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;frontend&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;front-back__merge&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.pip">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\romch\OneDrive\Desktop\Git_Hub\ai_workfinder\backend\app" />
+      <recent name="C:\Users\romch\OneDrive\Desktop\Git_Hub\ai_workfinder" />
+      <recent name="C:\Users\romch\OneDrive\Desktop\Git_Hub\ai_workfinder\backend\app\services" />
+      <recent name="C:\Users\romch\OneDrive\Desktop\Git_Hub\ai_workfinder\backend" />
+    </key>
+  </component>
+  <component name="RunManager">
     <configuration name="pip" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ai_workfinder" />
       <option name="ENV_FILES" value="" />

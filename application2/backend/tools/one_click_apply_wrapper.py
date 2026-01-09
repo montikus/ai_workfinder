@@ -4,8 +4,8 @@ import logging
 
 from pydantic import BaseModel, Field, ValidationError
 
-from backend.tools.parser_crawler import JobPosting
-from backend.tools.one_click_apply_tool import one_click_apply_filter_tool
+from backend.app.tools import JobPosting
+from backend.app.tools.one_click_apply_tool import one_click_apply_filter_tool
 
 logger = logging.getLogger(__name__)
 

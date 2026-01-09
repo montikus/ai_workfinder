@@ -28,5 +28,9 @@ npm run dev
 
 Бекенд:
 
+source venv/bin/activate
 uvicorn app.main:app --reload --port 8001
 
+контейнер:
+
+docker run -d --name mongodb -p 27017:27017 mongo:6

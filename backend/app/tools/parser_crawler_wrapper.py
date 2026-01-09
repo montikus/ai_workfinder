@@ -7,7 +7,7 @@ import logging
 
 from pydantic import BaseModel, Field, ValidationError
 
-from backend.tools.parser_crawler import search_jobs_tool, JobPosting
+from ..tools.parser_crawler import search_jobs_tool, JobPosting
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,11 @@
 
 
-from typing import List, Optional
+from typing import List
 import logging
 
 from pydantic import BaseModel, Field, ValidationError
 
-from backend.tools.parser_crawler import JobPosting
+from ..tools.parser_crawler import JobPosting
 
 logger = logging.getLogger(__name__)
 
