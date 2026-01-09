@@ -81,10 +81,10 @@ export function ProfilePage() {
     formData.append('resume', plik);
 
     try {
-      await klientHttp.post('/api/upload_resume', formData, {
+      const res = await klientHttp.post('/api/upload_resume', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      ustawNazwePlikuCV(plik.name);
+      ustawNazwePlikuCV(res.data?.resume_filename || plik.name);
       ustawSukces('Resume uploaded');
     } catch (err) {
       console.error(err);

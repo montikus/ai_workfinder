@@ -6,9 +6,7 @@ authors = ["MaximPyanin <maximpyanin@icloud.com>"]
 
 packages = [
     { include = "ai" },
-    { include = "backend" },
-    { include = "tools" },
-    { include = "app" }
+    { include = "backend" }
 ]
 
 [tool.poetry.dependencies]

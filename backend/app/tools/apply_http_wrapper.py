@@ -9,7 +9,7 @@ from pydantic import BaseModel, EmailStr, Field, ValidationError
 
 from langchain_core.tools import BaseTool
 
-from backend.tools.apply_http_tool import apply_to_job_http_tool
+from ..tools.apply_http_tool import apply_to_job_http_tool
 
 logger = logging.getLogger(__name__)
 

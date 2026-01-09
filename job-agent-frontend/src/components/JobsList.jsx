@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { pobierzOferty } from '../api/jobs.js';
 
-function JobsListInner() {
+function JobsListInner({ refreshToken }) {
   const [oferty, ustawOferty] = useState([]);
   const [ladowanie, ustawLadowanie] = useState(true);
   const [blad, ustawBlad] = useState(null);
@@ -28,7 +28,7 @@ function JobsListInner() {
   return () => {
     aktywny = false;
   };
-}, []);
+}, [refreshToken]);
 
 
   if (ladowanie) {

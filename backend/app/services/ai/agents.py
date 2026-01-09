@@ -6,11 +6,12 @@ from typing import Any, Dict, List, Callable
 import requests
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from backend.tools.parser_crawler_wrapper import justjoin_search_tool
-from backend.tools.one_click_apply_wrapper import one_click_apply_wrapper_tool
-from backend.tools.apply_http_wrapper import apply_http_wrapper_tool  # <-- NEW WRAPPER
+
 
 from .state import WorkflowState
+from app.tools.apply_http_wrapper import apply_http_wrapper_tool
+from app.tools.one_click_apply_wrapper import one_click_apply_wrapper_tool
+from app.tools.parser_crawler_wrapper import justjoin_search_tool
 
 logger = logging.getLogger(__name__)
 

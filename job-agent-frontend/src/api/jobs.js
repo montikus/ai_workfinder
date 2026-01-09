@@ -1,7 +1,7 @@
 import { klientHttp } from './http.js';
 
-export function rozpocznijWyszukiwanie() {
-  return klientHttp.post('/api/start_search');
+export function rozpocznijWyszukiwanie(dane) {
+  return klientHttp.post('/api/start_search', dane);
 }
 
 export function pobierzOferty() {

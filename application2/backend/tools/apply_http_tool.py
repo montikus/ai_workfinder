@@ -14,20 +14,20 @@ logger = logging.getLogger(__name__)
 # -----------------------------
 # Local hardcoded headers (ignored by git)
 # -----------------------------
-try:
+# try:
     # File you created:
     # backend/tools/_justjoin_headers_local.py (must be in .gitignore)
-    from backend.tools._justjoin_headers_local import (  # type: ignore
-        JJ_X_IDENTITY,
-        JJ_X_SNOWPLOW,
-        JJ_X_GA,
-        JJ_RECAPTCHA_TOKEN,
-    )
-except Exception:
-    JJ_X_IDENTITY = None
-    JJ_X_SNOWPLOW = None
-    JJ_X_GA = None
-    JJ_RECAPTCHA_TOKEN = None
+from _justjoin_headers_local import (  # type: ignore
+    JJ_X_IDENTITY,
+    JJ_X_SNOWPLOW,
+    JJ_X_GA,
+    JJ_RECAPTCHA_TOKEN,
+)
+# except Exception:
+#     JJ_X_IDENTITY = None
+#     JJ_X_SNOWPLOW = None
+#     JJ_X_GA = None
+#     JJ_RECAPTCHA_TOKEN = None
 
 
 # -----------------------------
