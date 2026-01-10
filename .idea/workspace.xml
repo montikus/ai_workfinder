@@ -28,17 +28,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.pip.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test.executor&quot;: &quot;Run&quot;,
-    &quot;Python.uvicorn.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;front-back__merge&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.main.executor": "Run",
+    "Python.pip.executor": "Run",
+    "Python.test.executor": "Run",
+    "Python.uvicorn.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\romch\OneDrive\Desktop\Git_Hub\ai_workfinder\backend\app" />
@@ -47,7 +47,7 @@
       <recent name="C:\Users\romch\OneDrive\Desktop\Git_Hub\ai_workfinder\backend" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.pip">
     <configuration name="pip" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ai_workfinder" />
       <option name="ENV_FILES" value="" />
