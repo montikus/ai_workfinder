@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, profile, search
+from app.api.routes import auth, profile, search, applications
 
 app = FastAPI(
     title="Job Agent API",
@@ -31,3 +31,4 @@ def healthcheck():
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(search.router)
+app.include_router(applications.router)

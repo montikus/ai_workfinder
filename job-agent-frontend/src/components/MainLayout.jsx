@@ -1,9 +1,12 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
+import { LanguageToggle } from './LanguageToggle.jsx';
 
 export function MainLayout() {
   const { uzytkownik, wyloguj } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const obsluzWylogowanie = () => {
@@ -14,18 +17,21 @@ export function MainLayout() {
   return (
     <div className="main-layout">
       <aside className="sidebar">
-        <h2>Ai Workfinder</h2>
-        <nav>
+        <h2>{t('appTitle')}</h2>
+        <nav className="sidebar-nav">
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active-link' : '')}>
-            Dashboard
+            {t('navDashboard')}
           </NavLink>
           <NavLink to="/profile" className={({ isActive }) => (isActive ? 'active-link' : '')}>
-            Profile
+            {t('navProfile')}
           </NavLink>
           <NavLink to="/applications" className={({ isActive }) => (isActive ? 'active-link' : '')}>
-            Applications
+            {t('navApplications')}
           </NavLink>
         </nav>
+        <div className="sidebar-footer">
+          <LanguageToggle />
+        </div>
       </aside>
       <main className="main-content">
         <header className="header">
@@ -33,7 +39,7 @@ export function MainLayout() {
             <strong>{uzytkownik?.email}</strong>
           </div>
           <button className="button secondary" onClick={obsluzWylogowanie}>
-            Logout
+            {t('logout')}
           </button>
         </header>
         <Outlet />

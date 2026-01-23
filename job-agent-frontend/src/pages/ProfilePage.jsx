@@ -3,9 +3,11 @@ import { pobierzProfil, aktualizujProfil } from '../api/auth.js';
 import { klientHttp } from '../api/http.js';
 import { polaczGmail } from '../api/gmail.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
 
 export function ProfilePage() {
   const { uzytkownik, ustawUzytkownika } = useAuth();
+  const { t } = useI18n();
 
   const [imie, ustawImie] = useState('');
   const [telefon, ustawTelefon] = useState('');
@@ -36,7 +38,7 @@ export function ProfilePage() {
       .catch((err) => {
         console.error(err);
         if (!aktywny) return;
-        ustawBlad('Failed to load profile');
+        ustawBlad('errorLoadProfile');
       })
       .finally(() => {
         if (!aktywny) return;
@@ -62,10 +64,10 @@ export function ProfilePage() {
           job_preferences_text: preferencje,
         });
         ustawUzytkownika(res.data);
-        ustawSukces('Profile updated');
+        ustawSukces('profileUpdated');
       } catch (err) {
         console.error(err);
-        ustawBlad('Failed to update profile');
+        ustawBlad('errorUpdateProfile');
       } finally {
         ustawZapisLadowanie(false);
       }
@@ -85,10 +87,10 @@ export function ProfilePage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       ustawNazwePlikuCV(res.data?.resume_filename || plik.name);
-      ustawSukces('Resume uploaded');
+      ustawSukces('resumeUploaded');
     } catch (err) {
       console.error(err);
-      ustawBlad('Failed to upload resume');
+      ustawBlad('errorUploadResume');
     }
   }, []);
 
@@ -99,47 +101,47 @@ export function ProfilePage() {
       window.location.href = url;
     } catch (err) {
       console.error(err);
-      ustawBlad('Failed to start Gmail connection');
+      ustawBlad('errorGmailConnect');
     }
   }, []);
 
   if (ladowanie) {
-    return <div>Loading profile...</div>;
+    return <div>{t('loadingProfile')}</div>;
   }
 
   return (
     <div>
-      <h1>Profile</h1>
+      <h1>{t('profileTitle')}</h1>
 
-      {blad && <div style={{ color: 'red', marginBottom: 8 }}>{blad}</div>}
-      {sukces && <div style={{ color: 'green', marginBottom: 8 }}>{sukces}</div>}
+      {blad && <div style={{ color: 'red', marginBottom: 8 }}>{t(blad)}</div>}
+      {sukces && <div style={{ color: 'green', marginBottom: 8 }}>{t(sukces)}</div>}
 
       <div className="card">
-        <h2>Basic information</h2>
+        <h2>{t('basicInfoTitle')}</h2>
         <form onSubmit={obsluzZapis}>
           <input
             className="input"
             type="text"
-            placeholder="Name"
+            placeholder={t('namePlaceholder')}
             value={imie}
             onChange={(e) => ustawImie(e.target.value)}
           />
           <input
             className="input"
             type="text"
-            placeholder="Phone"
+            placeholder={t('phonePlaceholder')}
             value={telefon}
             onChange={(e) => ustawTelefon(e.target.value)}
           />
           <input
             className="input"
             type="text"
-            placeholder="Location"
+            placeholder={t('locationLabel')}
             value={lokalizacja}
             onChange={(e) => ustawLokalizacja(e.target.value)}
           />
 
-          <label>Job preferences (English, free text)</label>
+          <label>{t('preferencesLabel')}</label>
           <textarea
             className="input"
             rows={6}
@@ -148,17 +150,17 @@ export function ProfilePage() {
           />
 
           <button className="button" type="submit" disabled={zapisLadowanie}>
-            {zapisLadowanie ? 'Saving...' : 'Save profile'}
+            {zapisLadowanie ? t('saving') : t('saveProfile')}
           </button>
         </form>
       </div>
 
       <div className="card">
-        <h2>Resume</h2>
+        <h2>{t('resumeTitle')}</h2>
         <input type="file" accept=".pdf,.doc,.docx" onChange={obsluzPlikCV} />
         {nazwaPlikuCV && (
           <p style={{ marginTop: 8 }}>
-            Current file: <strong>{nazwaPlikuCV}</strong>
+            {t('currentFileLabel')}: <strong>{nazwaPlikuCV}</strong>
           </p>
         )}
       </div>

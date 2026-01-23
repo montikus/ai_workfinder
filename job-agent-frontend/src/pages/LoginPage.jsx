@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
+import { LanguageToggle } from '../components/LanguageToggle.jsx';
 
 export function LoginPage() {
   const { zaloguj } = useAuth();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [email, ustawEmail] = useState('');
   const [haslo, ustawHaslo] = useState('');
   const [blad, ustawBlad] = useState(null);
@@ -19,42 +22,45 @@ export function LoginPage() {
       navigate('/dashboard');
     } catch (err) {
       console.error(err);
-      ustawBlad('Nieprawidłowy email lub hasło');
+      ustawBlad('errorInvalidCredentials');
     } finally {
       ustawLadowanie(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '80px auto' }}>
-      <div className="card">
-        <h2>Login</h2>
-        {blad && <div style={{ color: 'red', marginBottom: 8 }}>{blad}</div>}
-        <form onSubmit={obsluzSubmit}>
-          <input
-            className="input"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => ustawEmail(e.target.value)}
-            required
-          />
-          <input
-            className="input"
-            type="password"
-            placeholder="Password"
-            value={haslo}
-            onChange={(e) => ustawHaslo(e.target.value)}
-            required
-          />
-          <button className="button" type="submit" disabled={ladowanie}>
-            {ladowanie ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <p style={{ marginTop: 12 }}>
-          No account? <Link to="/register">Register</Link>
-        </p>
+    <>
+      <div style={{ maxWidth: 400, margin: '80px auto' }}>
+        <div className="card">
+          <h2>{t('loginTitle')}</h2>
+          {blad && <div style={{ color: 'red', marginBottom: 8 }}>{t(blad)}</div>}
+          <form onSubmit={obsluzSubmit}>
+            <input
+              className="input"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              value={email}
+              onChange={(e) => ustawEmail(e.target.value)}
+              required
+            />
+            <input
+              className="input"
+              type="password"
+              placeholder={t('passwordPlaceholder')}
+              value={haslo}
+              onChange={(e) => ustawHaslo(e.target.value)}
+              required
+            />
+            <button className="button" type="submit" disabled={ladowanie}>
+              {ladowanie ? t('loggingIn') : t('loginButton')}
+            </button>
+          </form>
+          <p style={{ marginTop: 12 }}>
+            {t('noAccount')} <Link to="/register">{t('registerLink')}</Link>
+          </p>
+        </div>
       </div>
-    </div>
+      <LanguageToggle className="fixed-auth" />
+    </>
   );
 }

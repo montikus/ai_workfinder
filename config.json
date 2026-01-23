@@ -7,7 +7,7 @@
   "full_name": "Pidoras",
   "email": "2222@gmail.com",
   "resume_path": "/mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/uploads/695e4e8d6017aec4bc07105a/AN_zadanie_2.pdf",
-  "max_apply": 4,
+  "max_apply": 3,
   "use_captcha_solver": true,
   "headless": false,
   "captcha_wait_sec": 30,

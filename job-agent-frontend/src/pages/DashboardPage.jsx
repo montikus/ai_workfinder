@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { pobierzProfil } from '../api/auth.js';
 import { rozpocznijWyszukiwanie, pobierzStatusWyszukiwania } from '../api/jobs.js';
 import { JobsList } from '../components/JobsList.jsx';
+import { useI18n } from '../context/I18nContext.jsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
 
 export function DashboardPage() {
+  const { t } = useI18n();
   const [profil, ustawProfil] = useState(null);
   const [preferencje, ustawPreferencje] = useState('');
   const [specjalizacja, ustawSpecjalizacje] = useState('python');
@@ -126,7 +128,7 @@ export function DashboardPage() {
       .catch((err) => {
         if (err.name === 'AbortError') return;
         console.error(err);
-        ustawBladStreamu('Stream disconnected');
+        ustawBladStreamu('streamDisconnected');
       })
       .finally(() => {
         streamControllerRef.current = null;
@@ -157,23 +159,23 @@ export function DashboardPage() {
     const maxApplyNum = Number(maxAplikacji);
 
     if (!specjalizacjaTrim) {
-      ustawBlad('Specialization is required.');
+      ustawBlad('errorSpecializationRequired');
       return;
     }
     if (!pelneImieTrim) {
-      ustawBlad('Full name is required.');
+      ustawBlad('errorFullNameRequired');
       return;
     }
     if (!profil?.resume_filename) {
-      ustawBlad('Please upload your resume in Profile first.');
+      ustawBlad('errorResumeMissing');
       return;
     }
     if (!Number.isFinite(limitNum) || limitNum < 1 || limitNum > 100) {
-      ustawBlad('Limit must be between 1 and 100.');
+      ustawBlad('errorLimit');
       return;
     }
     if (!Number.isFinite(maxApplyNum) || maxApplyNum < 1 || maxApplyNum > 100) {
-      ustawBlad('Max apply must be between 1 and 100.');
+      ustawBlad('errorMaxApply');
       return;
     }
 
@@ -190,58 +192,65 @@ export function DashboardPage() {
       ustawStatus('running');
     } catch (err) {
       console.error(err);
-      ustawBlad('Failed to start search');
+      ustawBlad('errorStartSearch');
     }
+  };
+
+  const statusLabels = {
+    idle: t('statusIdle'),
+    running: t('statusRunning'),
+    finished: t('statusFinished'),
+    failed: t('statusFailed'),
   };
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <h1>{t('dashboardTitle')}</h1>
       {ladowanie ? (
-        <div>Loading...</div>
+        <div>{t('loading')}</div>
       ) : (
         <>
           <div className="card">
-            <h2>Job preferences</h2>
+            <h2>{t('jobPreferencesTitle')}</h2>
             {preferencje ? (
               <pre style={{ whiteSpace: 'pre-wrap' }}>{preferencje}</pre>
             ) : (
-              <p>No job preferences set yet. Go to Profile and add them.</p>
+              <p>{t('jobPreferencesEmpty')}</p>
             )}
           </div>
 
           <div className="card">
-            <h2>Search jobs</h2>
-            {blad && <div style={{ color: 'red', marginBottom: 8 }}>{blad}</div>}
-            <label>Specialization</label>
+            <h2>{t('searchJobsTitle')}</h2>
+            {blad && <div style={{ color: 'red', marginBottom: 8 }}>{t(blad)}</div>}
+            <label>{t('specializationLabel')}</label>
             <input
               className="input"
               type="text"
-              placeholder="python, javascript, devops, ai..."
+              placeholder={t('specializationPlaceholder')}
               value={specjalizacja}
               onChange={(e) => ustawSpecjalizacje(e.target.value)}
             />
-            <label>Experience level</label>
+            <label>{t('experienceLabel')}</label>
             <select
               className="input"
               value={doswiadczenie}
               onChange={(e) => ustawDoswiadczenie(e.target.value)}
             >
-              <option value="">Any</option>
-              <option value="junior">Junior</option>
-              <option value="mid">Mid</option>
-              <option value="senior">Senior</option>
-              <option value="c-level">C-level</option>
+              <option value="">{t('experienceAny')}</option>
+              <option value="junior">{t('experienceJunior')}</option>
+              <option value="mid">{t('experienceMid')}</option>
+              <option value="senior">{t('experienceSenior')}</option>
+              <option value="c-level">{t('experienceCLevel')}</option>
             </select>
-            <label>Location</label>
+            <label>{t('locationLabel')}</label>
             <input
               className="input"
               type="text"
-              placeholder="warszawa, krakow, all-locations"
+              placeholder={t('locationPlaceholder')}
               value={lokalizacja}
               onChange={(e) => ustawLokalizacje(e.target.value)}
             />
-            <label>Results limit</label>
+            <label>{t('resultsLimitLabel')}</label>
             <input
               className="input"
               type="number"
@@ -250,7 +259,7 @@ export function DashboardPage() {
               value={limit}
               onChange={(e) => ustawLimit(e.target.value)}
             />
-            <label>Max applications</label>
+            <label>{t('maxApplicationsLabel')}</label>
             <input
               className="input"
               type="number"
@@ -259,49 +268,56 @@ export function DashboardPage() {
               value={maxAplikacji}
               onChange={(e) => ustawMaxAplikacji(e.target.value)}
             />
-            <label>Full name</label>
+            <label>{t('fullNameLabel')}</label>
             <input
               className="input"
               type="text"
-              placeholder="Full name"
+              placeholder={t('fullNamePlaceholder')}
               value={pelneImie}
               onChange={(e) => ustawPelneImie(e.target.value)}
             />
             <p style={{ marginTop: 8 }}>
-              Resume: <strong>{profil?.resume_filename || 'Not uploaded'}</strong>
+              {t('resumeLabel')}: <strong>{profil?.resume_filename || t('resumeNotUploaded')}</strong>
             </p>
             <p>
-              Status:{' '}
+              {t('statusLabel')}:{' '}
               <strong>
-                {status === 'idle' && 'Not started'}
-                {status === 'running' && 'Running'}
-                {status === 'finished' && 'Finished'}
-                {status === 'failed' && 'Failed'}
+                {statusLabels[status] || status}
               </strong>
             </p>
             {statystyki && (
               <>
                 <p>
-                  Jobs found: {statystyki.jobs_found} | One-click jobs: {statystyki.total_one_click}
+                  {t('statsJobsFound', {
+                    jobs: statystyki.jobs_found,
+                    oneClick: statystyki.total_one_click,
+                  })}
                 </p>
                 <p>
-                  Applied: {statystyki.applied_ok} / {statystyki.attempted_apply} (successful / attempted)
+                  {t('statsApplied', {
+                    applied: statystyki.applied_ok,
+                    attempted: statystyki.attempted_apply,
+                  })}
                 </p>
               </>
             )}
-            {statystyki?.error && <div className="status-error">Last error: {statystyki.error}</div>}
+            {statystyki?.error && (
+              <div className="status-error">
+                {t('lastError', { error: statystyki.error })}
+              </div>
+            )}
             <button
               className="button"
               onClick={obsluzStartWyszukiwania}
               disabled={status === 'running'}
             >
-              {status === 'running' ? 'Search in progress...' : 'Start search'}
+              {status === 'running' ? t('searchInProgress') : t('startSearch')}
             </button>
           </div>
 
           <div className="card">
-            <h2>Agent stream</h2>
-            {bladStreamu && <div className="status-error">{bladStreamu}</div>}
+            <h2>{t('agentStreamTitle')}</h2>
+            {bladStreamu && <div className="status-error">{t(bladStreamu)}</div>}
             {logi.length ? (
               <div
                 style={{
@@ -321,7 +337,7 @@ export function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p>No stream messages yet.</p>
+              <p>{t('noStreamMessages')}</p>
             )}
           </div>
 
