@@ -8,14 +8,14 @@ Run the full Python suite with coverage from the repository root:
 pytest backend/tests --cov=app --cov-report=term-missing
 ```
 
-Backend tests are grouped by theme under `backend/tests`:
+Backend tests are grouped under `backend/tests` by level first, then by theme:
 
-- `api/routes`: route and handler tests
-- `core`: security tests
-- `repositories`: repository and dependency tests
-- `services`: state, path, and runner tests
-- `services/ai`: AI orchestration tests
-- `tools`: crawler and apply wrapper tests
+- `integration/api/routes`: route and handler tests
+- `unit/core`: security tests
+- `unit/repositories`: repository and dependency tests
+- `unit/services`: state, path, and runner tests
+- `unit/services/ai`: AI orchestration tests
+- `unit/tools`: crawler and apply wrapper tests
 
 Generate HTML backend reports with:
 
