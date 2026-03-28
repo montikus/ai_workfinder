@@ -1,12 +1,12 @@
 
-# ai_workfinder
-work finder with ai functionality
+# AI_WORKFINDER
+Work finder application with AI functionality.
 
 Team: 
-Roman Nadkernychnyi 
-Maksim Pyanin
-Bohdan Hrytsai
-Maksym Stepaniuk
+- Roman Nadkernychnyi 
+- Maksim Pyanin
+- Bohdan Hrytsai
+- Maksym Stepaniuk
 
 Functionality:
 1. Multi Ai-agent system for autonomos searching:
@@ -21,18 +21,24 @@ Functionality:
    - File storaging
    - System for applying search parametres
  
-Как запустить приложение
-
-Фронтенд:
-
+# How to start an app
+# Frontend: 
+From job-agent-frontend/ folder:
+```
 npm run dev
+```
+# Backend: 
 
-Бекенд:
+From backend/ folder: 
 
+``` 
 source venv/bin/activate
 
 uvicorn app.main:app --reload --port 8001
+```
+# Container(MongoDB):
+In Docker CLI:
 
-контейнер:
-
-docker run -d --name mongodb -p 27017:27017 mongo:6
+``` 
+docker run -d --name mongodb -p 27017:27017 mongo:6 
+```
