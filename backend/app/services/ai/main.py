@@ -101,4 +101,5 @@ def main() -> int:
     return 0 if summary.ok else 1
 
 
-main()
+if __name__ == "__main__":
+    raise SystemExit(main())

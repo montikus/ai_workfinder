@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
-from app.db.mongo import kolekcja_uzytkownicy
+from app.db.mongo import pobierz_kolekcje_uzytkownicy
 from app.repositories.uzytkownik_repo import RepozytoriumUzytkownikow
 from app.core.security import zweryfikuj_token
 
@@ -9,7 +9,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 
 def pobierz_repo_uzytkownikow() -> RepozytoriumUzytkownikow:
-    return RepozytoriumUzytkownikow(kolekcja_uzytkownicy)
+    return RepozytoriumUzytkownikow(pobierz_kolekcje_uzytkownicy())
 
 
 async def pobierz_aktualnego_uzytkownika(

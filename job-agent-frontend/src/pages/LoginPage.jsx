@@ -21,8 +21,7 @@ export function LoginPage() {
       await zaloguj({ email, password: haslo });
       navigate('/dashboard');
     } catch (err) {
-      console.error(err);
-      ustawBlad('errorInvalidCredentials');
+      ustawBlad(err?.response?.data?.detail || 'errorInvalidCredentials');
     } finally {
       ustawLadowanie(false);
     }
@@ -38,6 +37,7 @@ export function LoginPage() {
             <input
               className="input"
               type="email"
+              autoComplete="username"
               placeholder={t('emailPlaceholder')}
               value={email}
               onChange={(e) => ustawEmail(e.target.value)}
@@ -46,6 +46,7 @@ export function LoginPage() {
             <input
               className="input"
               type="password"
+              autoComplete="current-password"
               placeholder={t('passwordPlaceholder')}
               value={haslo}
               onChange={(e) => ustawHaslo(e.target.value)}
