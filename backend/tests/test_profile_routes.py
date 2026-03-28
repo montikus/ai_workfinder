@@ -131,3 +131,29 @@ def test_upload_resume_rejects_empty_file(
 
     assert exc_info.value.status_code == 400
     assert exc_info.value.detail == "Uploaded file is empty."
+
+
+def test_upload_resume_rejects_file_larger_than_5_mb(
+    create_user,
+    repo,
+    monkeypatch,
+    tmp_path,
+):
+    user = create_user()
+    monkeypatch.setattr(
+        profile,
+        "resume_path",
+        lambda user_id, filename: Path(tmp_path / user_id / filename),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(
+            profile.upload_resume(
+                FakeUploadFile("resume.pdf", b"x" * (profile.MAX_RESUME_SIZE_BYTES + 1)),
+                user,
+                repo,
+            )
+        )
+
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == "Uploaded file exceeds 5 MB limit."

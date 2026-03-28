@@ -98,6 +98,30 @@ describe('ProfilePage', () => {
     expect(ustawUzytkownika).toHaveBeenCalledTimes(1);
   });
 
+  it('rejects a resume file larger than 5 MB on the client', async () => {
+    const ustawUzytkownika = vi.fn();
+    useAuth.mockReturnValue({ uzytkownik: null, ustawUzytkownika });
+    pobierzProfil.mockResolvedValue({ data: {} });
+
+    const { container } = renderWithProviders(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Profile')).toBeInTheDocument();
+    });
+    klientHttp.post.mockClear();
+
+    const file = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'too-large.pdf', {
+      type: 'application/pdf',
+    });
+    const input = container.querySelector('input[type="file"]');
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Resume file must be 5 MB or smaller.')).toBeInTheDocument();
+    });
+    expect(klientHttp.post).not.toHaveBeenCalled();
+  });
+
   it('shows an error when profile loading fails', async () => {
     useAuth.mockReturnValue({ uzytkownik: null, ustawUzytkownika: vi.fn() });
     pobierzProfil.mockRejectedValue(new Error('boom'));
