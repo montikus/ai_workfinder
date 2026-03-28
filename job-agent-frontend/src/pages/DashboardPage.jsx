@@ -4,7 +4,7 @@ import { rozpocznijWyszukiwanie, pobierzStatusWyszukiwania } from '../api/jobs.j
 import { JobsList } from '../components/JobsList.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+const API_BASE_URL = globalThis.__APP_API_URL__ || 'http://localhost:8001';
 
 export function DashboardPage() {
   const { t } = useI18n();

@@ -1,0 +1,11 @@
+[run]
+source =
+    backend/app
+branch = False
+omit =
+    */__init__.py
+    */_justjoin_headers_local.py
+
+[report]
+skip_empty = True
+show_missing = True

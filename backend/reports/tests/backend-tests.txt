@@ -1,0 +1,70 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.2, pytest-9.0.2, pluggy-1.5.0
+rootdir: /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder
+configfile: pytest.ini
+plugins: cov-7.1.0, langsmith-0.6.0, anyio-4.12.1
+collected 89 items
+
+backend/tests/integration/api/routes/test_applications_routes.py ...     [  3%]
+backend/tests/integration/api/routes/test_auth_routes.py ....            [  7%]
+backend/tests/integration/api/routes/test_profile_routes.py .......      [ 15%]
+backend/tests/integration/api/routes/test_search_routes.py ............. [ 30%]
+                                                                         [ 30%]
+backend/tests/unit/core/test_security.py ....                            [ 34%]
+backend/tests/unit/repositories/test_repository_and_deps.py .........    [ 44%]
+backend/tests/unit/services/ai/test_ai_modules.py .............          [ 59%]
+backend/tests/unit/services/test_paths_and_ai_runner.py .......          [ 67%]
+backend/tests/unit/services/test_search_state.py .....                   [ 73%]
+backend/tests/unit/tools/test_apply_http_tools.py .........              [ 83%]
+backend/tests/unit/tools/test_parser_and_one_click_tools.py ............ [ 96%]
+...                                                                      [100%]
+
+=============================== warnings summary ===============================
+backend/tests/integration/api/routes/test_auth_routes.py::test_login_returns_token_and_user
+backend/tests/unit/core/test_security.py::test_utworz_token_dostepu_and_zweryfikuj_token
+backend/tests/unit/core/test_security.py::test_zweryfikuj_token_returns_none_for_expired_token
+backend/tests/unit/repositories/test_repository_and_deps.py::test_pobierz_aktualnego_uzytkownika_returns_document
+  /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/app/core/security.py:31: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    wygasa = datetime.utcnow() + expires_delta
+
+backend/tests/integration/api/routes/test_search_routes.py: 15 warnings
+backend/tests/unit/services/test_search_state.py: 513 warnings
+  /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/app/services/search_state.py:30: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return datetime.utcnow().isoformat() + "Z"
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/reports/tests/backend-tests.xml -
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.13.2-final-0 ________________
+
+Name                                           Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------------
+backend/app/api/deps.py                           19      0   100%
+backend/app/api/routes/applications.py            34      0   100%
+backend/app/api/routes/auth.py                    29      0   100%
+backend/app/api/routes/profile.py                 43      2    95%   32, 34
+backend/app/api/routes/search.py                 156     10    94%   38, 44-45, 87-90, 92, 164-165, 250
+backend/app/core/config.py                        11      0   100%
+backend/app/core/security.py                      23      0   100%
+backend/app/db/mongo.py                           12      0   100%
+backend/app/main.py                               13      1    92%   28
+backend/app/repositories/uzytkownik_repo.py       25      0   100%
+backend/app/schemas/uzytkownik.py                 21      0   100%
+backend/app/services/ai/agents.py                123     13    89%   43-44, 64, 97-98, 137-138, 148-150, 184-185, 219
+backend/app/services/ai/graph_builder.py          16      0   100%
+backend/app/services/ai/main.py                   46      2    96%   30, 105
+backend/app/services/ai/run_from_config.py        36      4    89%   16, 36, 42, 81
+backend/app/services/ai/state.py                  61      0   100%
+backend/app/services/ai_runner.py                 29      0   100%
+backend/app/services/paths.py                     11      1    91%   11
+backend/app/services/search_state.py              82      0   100%
+backend/app/tools/apply_http_tool.py             111      8    93%   98-100, 147, 233-234, 239-240
+backend/app/tools/apply_http_wrapper.py           47      1    98%   134
+backend/app/tools/one_click_apply_tool.py         29      5    83%   45, 126, 130-284
+backend/app/tools/one_click_apply_wrapper.py      20      0   100%
+backend/app/tools/parser_crawler.py              107      5    95%   125, 357, 475, 500, 592
+backend/app/tools/parser_crawler_wrapper.py       22      0   100%
+----------------------------------------------------------------------------
+TOTAL                                           1126     52    95%
+Coverage HTML written to dir /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/reports/coverage
+======================= 89 passed, 532 warnings in 9.07s =======================

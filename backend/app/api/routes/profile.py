@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.api.deps import pobierz_aktualnego_uzytkownika, pobierz_repo_uzytkownikow
 from app.repositories.uzytkownik_repo import RepozytoriumUzytkownikow
@@ -9,6 +9,7 @@ from app.api.routes.auth import zamien_uzytkownika_na_schemat
 from app.services.paths import resume_path
 
 router = APIRouter()
+MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024
 
 
 @router.get("/api/profile", response_model=SchematUzytkownik)
@@ -66,6 +67,11 @@ async def upload_resume(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Uploaded file is empty.",
+        )
+    if len(content) > MAX_RESUME_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file exceeds 5 MB limit.",
         )
 
     dest_path.write_bytes(content)

@@ -7,12 +7,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from ai.state import RunInput, state_from_input, summary_from_state
-from ai.graph_builder import build_graph
+from .state import RunInput, state_from_input, summary_from_state
+from .graph_builder import build_graph
+from ..paths import project_root
 
 
 def _project_root() -> Path:
-    return Path(__file__).resolve().parents[1]
+    return project_root()
 
 
 def main() -> int:

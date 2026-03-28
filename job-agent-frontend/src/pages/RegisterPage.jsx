@@ -29,8 +29,7 @@ export function RegisterPage() {
       await zarejestruj({ email, password: haslo });
       navigate('/login');
     } catch (err) {
-      console.error(err);
-      ustawBlad('errorRegistrationFailed');
+      ustawBlad(err?.response?.data?.detail || 'errorRegistrationFailed');
     } finally {
       ustawLadowanie(false);
     }
@@ -46,6 +45,7 @@ export function RegisterPage() {
             <input
               className="input"
               type="email"
+              autoComplete="email"
               placeholder={t('emailPlaceholder')}
               value={email}
               onChange={(e) => ustawEmail(e.target.value)}
@@ -54,6 +54,7 @@ export function RegisterPage() {
             <input
               className="input"
               type="password"
+              autoComplete="new-password"
               placeholder={t('passwordPlaceholder')}
               value={haslo}
               onChange={(e) => ustawHaslo(e.target.value)}
@@ -62,6 +63,7 @@ export function RegisterPage() {
             <input
               className="input"
               type="password"
+              autoComplete="new-password"
               placeholder={t('repeatPasswordPlaceholder')}
               value={powtorzHaslo}
               onChange={(e) => ustawPowtorzHaslo(e.target.value)}

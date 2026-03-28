@@ -5,6 +5,8 @@ import { polaczGmail } from '../api/gmail.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../context/I18nContext.jsx';
 
+const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
+
 export function ProfilePage() {
   const { uzytkownik, ustawUzytkownika } = useAuth();
   const { t } = useI18n();
@@ -78,6 +80,15 @@ export function ProfilePage() {
   const obsluzPlikCV = useCallback(async (e) => {
     const plik = e.target.files[0];
     if (!plik) return;
+
+    ustawBlad(null);
+    ustawSukces(null);
+
+    if (plik.size > MAX_RESUME_SIZE_BYTES) {
+      ustawBlad('errorResumeTooLarge');
+      e.target.value = '';
+      return;
+    }
 
     const formData = new FormData();
     formData.append('resume', plik);

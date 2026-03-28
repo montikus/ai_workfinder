@@ -2,16 +2,16 @@
   "llm_model": "Llama-4-Maverick-17B-128E-Instruct-FP8",
   "specialization": "python",
   "experience_level": null,
-  "location": "Krakow",
+  "location": "Gdansk",
   "limit": 20,
-  "full_name": "Pidoras",
-  "email": "2222@gmail.com",
-  "resume_path": "/mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/uploads/695e4e8d6017aec4bc07105a/test_cv.pdf",
+  "full_name": "Gandon Pidorasowic",
+  "email": "12345@gmail.com",
+  "resume_path": "/mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/uploads/69c80d3fda57e86a01055f16/Pytania ASK.docx",
   "max_apply": 3,
   "use_captcha_solver": true,
   "headless": false,
   "captcha_wait_sec": 30,
   "timeout_sec": 30,
   "slow_mo_ms": 0,
-  "user_request": "Dohua deniak, nihya ne delat"
+  "user_request": "dohuja denak"
 }
