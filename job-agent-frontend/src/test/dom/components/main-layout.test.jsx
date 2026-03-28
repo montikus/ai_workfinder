@@ -3,11 +3,11 @@ import { Route, Routes } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { MainLayout } from '../components/MainLayout.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { MainLayout } from '../../../components/MainLayout.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../context/AuthContext.jsx', () => ({
+vi.mock('../../../context/AuthContext.jsx', () => ({
   useAuth: vi.fn(),
 }));
 

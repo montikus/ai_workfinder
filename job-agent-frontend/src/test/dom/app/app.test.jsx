@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import App from '../App.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import App from '../../../App.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../context/AuthContext.jsx', () => ({
+vi.mock('../../../context/AuthContext.jsx', () => ({
   useAuth: vi.fn(),
 }));
 

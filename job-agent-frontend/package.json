@@ -11,8 +11,8 @@
     "test": "npm run test:api",
     "test:coverage": "npm run test:api:coverage",
     "test:watch": "vitest",
-    "test:api": "vitest run src/test/http-client-node.test.js src/test/api-wrappers-node.test.js src/test/smoke.test.js src/test/import-pure.test.js src/test/dynamic-http.test.js src/test/describe-smoke.test.js --config vitest.node.config.js",
-    "test:api:coverage": "vitest run src/test/http-client-node.test.js src/test/api-wrappers-node.test.js src/test/smoke.test.js src/test/import-pure.test.js src/test/dynamic-http.test.js src/test/describe-smoke.test.js --config vitest.node.config.js --coverage",
+    "test:api": "vitest run --config vitest.node.config.js",
+    "test:api:coverage": "vitest run --config vitest.node.config.js --coverage",
     "test:dom": "vitest run",
     "test:dom:coverage": "vitest run --coverage"
   },

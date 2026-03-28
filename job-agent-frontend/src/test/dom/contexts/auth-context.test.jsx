@@ -2,11 +2,11 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
-import { logowanie, pobierzProfil, rejestracja } from '../api/auth.js';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { AuthProvider, useAuth } from '../../../context/AuthContext.jsx';
+import { logowanie, pobierzProfil, rejestracja } from '../../../api/auth.js';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../api/auth.js', () => ({
+vi.mock('../../../api/auth.js', () => ({
   logowanie: vi.fn(),
   rejestracja: vi.fn(),
   pobierzProfil: vi.fn(),

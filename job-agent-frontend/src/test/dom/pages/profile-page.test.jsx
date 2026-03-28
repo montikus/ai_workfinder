@@ -2,28 +2,28 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { ProfilePage } from '../pages/ProfilePage.jsx';
-import { pobierzProfil, aktualizujProfil } from '../api/auth.js';
-import { klientHttp } from '../api/http.js';
-import { useAuth } from '../context/AuthContext.jsx';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { ProfilePage } from '../../../pages/ProfilePage.jsx';
+import { pobierzProfil, aktualizujProfil } from '../../../api/auth.js';
+import { klientHttp } from '../../../api/http.js';
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../api/auth.js', () => ({
+vi.mock('../../../api/auth.js', () => ({
   pobierzProfil: vi.fn(),
   aktualizujProfil: vi.fn(),
 }));
 
-vi.mock('../api/http.js', () => ({
+vi.mock('../../../api/http.js', () => ({
   klientHttp: {
     post: vi.fn(),
   },
 }));
 
-vi.mock('../api/gmail.js', () => ({
+vi.mock('../../../api/gmail.js', () => ({
   polaczGmail: vi.fn(),
 }));
 
-vi.mock('../context/AuthContext.jsx', () => ({
+vi.mock('../../../context/AuthContext.jsx', () => ({
   useAuth: vi.fn(),
 }));
 

@@ -2,11 +2,11 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { ProtectedRoute } from '../router/ProtectedRoute.jsx';
-import { useAuth } from '../context/AuthContext.jsx';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { ProtectedRoute } from '../../../router/ProtectedRoute.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../context/AuthContext.jsx', () => ({
+vi.mock('../../../context/AuthContext.jsx', () => ({
   useAuth: vi.fn(),
 }));
 

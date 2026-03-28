@@ -2,21 +2,21 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { DashboardPage } from '../pages/DashboardPage.jsx';
-import { pobierzProfil } from '../api/auth.js';
-import { pobierzStatusWyszukiwania, rozpocznijWyszukiwanie } from '../api/jobs.js';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { DashboardPage } from '../../../pages/DashboardPage.jsx';
+import { pobierzProfil } from '../../../api/auth.js';
+import { pobierzStatusWyszukiwania, rozpocznijWyszukiwanie } from '../../../api/jobs.js';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../api/auth.js', () => ({
+vi.mock('../../../api/auth.js', () => ({
   pobierzProfil: vi.fn(),
 }));
 
-vi.mock('../api/jobs.js', () => ({
+vi.mock('../../../api/jobs.js', () => ({
   rozpocznijWyszukiwanie: vi.fn(),
   pobierzStatusWyszukiwania: vi.fn(),
 }));
 
-vi.mock('../components/JobsList.jsx', () => ({
+vi.mock('../../../components/JobsList.jsx', () => ({
   JobsList: ({ refreshToken }) => <div data-testid="jobs-list">{refreshToken}</div>,
 }));
 

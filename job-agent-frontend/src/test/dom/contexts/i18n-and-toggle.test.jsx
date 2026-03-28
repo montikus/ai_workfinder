@@ -2,9 +2,9 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { LanguageProvider, useI18n } from '../context/I18nContext.jsx';
-import { LanguageToggle } from '../components/LanguageToggle.jsx';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { LanguageProvider, useI18n } from '../../../context/I18nContext.jsx';
+import { LanguageToggle } from '../../../components/LanguageToggle.jsx';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
 function I18nConsumer() {
   const { language, setLanguage, t } = useI18n();

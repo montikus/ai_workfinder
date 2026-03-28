@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { JobsList } from '../components/JobsList.jsx';
-import { pobierzOferty } from '../api/jobs.js';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { JobsList } from '../../../components/JobsList.jsx';
+import { pobierzOferty } from '../../../api/jobs.js';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../api/jobs.js', () => ({
+vi.mock('../../../api/jobs.js', () => ({
   pobierzOferty: vi.fn(),
 }));
 

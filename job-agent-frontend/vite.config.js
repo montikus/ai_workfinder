@@ -6,11 +6,12 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'happy-dom',
-    setupFiles: './src/test/setup.js',
+    include: ['src/test/dom/**/*.test.{js,jsx}'],
+    setupFiles: './src/test/helpers/setup.js',
     css: true,
     pool: 'threads',
     maxWorkers: 2,
-    exclude: [...configDefaults.exclude, 'src/test/*-node.test.js'],
+    exclude: [...configDefaults.exclude, 'src/test/node/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],

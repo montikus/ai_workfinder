@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { ApplicationsPage } from '../pages/ApplicationsPage.jsx';
-import { pobierzAplikacje } from '../api/applications.js';
-import { renderWithProviders } from './renderWithProviders.jsx';
+import { ApplicationsPage } from '../../../pages/ApplicationsPage.jsx';
+import { pobierzAplikacje } from '../../../api/applications.js';
+import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
 
-vi.mock('../api/applications.js', () => ({
+vi.mock('../../../api/applications.js', () => ({
   pobierzAplikacje: vi.fn(),
 }));
 

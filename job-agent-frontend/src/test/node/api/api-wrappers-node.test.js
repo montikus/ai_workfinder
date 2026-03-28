@@ -1,8 +1,8 @@
 import { expect, it, vi } from 'vitest';
 
 it('routes auth requests through the shared client', async () => {
-  const { klientHttp } = await import('../api/http.js');
-  const { rejestracja, logowanie, pobierzProfil, aktualizujProfil } = await import('../api/auth.js');
+  const { klientHttp } = await import('../../../api/http.js');
+  const { rejestracja, logowanie, pobierzProfil, aktualizujProfil } = await import('../../../api/auth.js');
   const postSpy = vi.spyOn(klientHttp, 'post').mockResolvedValue({ data: {} });
   const getSpy = vi.spyOn(klientHttp, 'get').mockResolvedValue({ data: {} });
   const putSpy = vi.spyOn(klientHttp, 'put').mockResolvedValue({ data: {} });
@@ -19,10 +19,10 @@ it('routes auth requests through the shared client', async () => {
 });
 
 it('routes job, application, and gmail requests through the shared client', async () => {
-  const { klientHttp } = await import('../api/http.js');
-  const { rozpocznijWyszukiwanie, pobierzOferty, pobierzStatusWyszukiwania } = await import('../api/jobs.js');
-  const { pobierzAplikacje } = await import('../api/applications.js');
-  const { polaczGmail } = await import('../api/gmail.js');
+  const { klientHttp } = await import('../../../api/http.js');
+  const { rozpocznijWyszukiwanie, pobierzOferty, pobierzStatusWyszukiwania } = await import('../../../api/jobs.js');
+  const { pobierzAplikacje } = await import('../../../api/applications.js');
+  const { polaczGmail } = await import('../../../api/gmail.js');
   const postSpy = vi.spyOn(klientHttp, 'post').mockResolvedValue({ data: {} });
   const getSpy = vi.spyOn(klientHttp, 'get').mockResolvedValue({ data: {} });
 

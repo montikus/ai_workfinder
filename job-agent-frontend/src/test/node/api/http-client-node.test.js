@@ -5,7 +5,7 @@ it('adds an authorization header when a token exists', async () => {
     getItem: vi.fn(() => 'token-123'),
   });
 
-  const { klientHttp } = await import('../api/http.js');
+  const { klientHttp } = await import('../../../api/http.js');
   const handler = klientHttp.interceptors.request.handlers.at(-1).fulfilled;
   const config = await handler({ headers: {} });
 
@@ -24,7 +24,7 @@ it('sends GET, POST, and PUT requests through fetch', async () => {
   });
   vi.stubGlobal('fetch', fetchMock);
 
-  const { klientHttp } = await import('../api/http.js');
+  const { klientHttp } = await import('../../../api/http.js');
 
   await klientHttp.get('/api/profile');
   await klientHttp.post('/api/login', { email: 'user@example.com' });
@@ -59,7 +59,7 @@ it('sends FormData without forcing a JSON content type', async () => {
   });
   vi.stubGlobal('fetch', fetchMock);
 
-  const { klientHttp } = await import('../api/http.js');
+  const { klientHttp } = await import('../../../api/http.js');
   const formData = new FormData();
   formData.append('resume', 'file-content');
 
@@ -87,7 +87,7 @@ it('throws an error with response details for non-OK responses', async () => {
     })
   );
 
-  const { klientHttp } = await import('../api/http.js');
+  const { klientHttp } = await import('../../../api/http.js');
 
   await expect(klientHttp.get('/api/profile')).rejects.toMatchObject({
     message: 'HTTP 400',

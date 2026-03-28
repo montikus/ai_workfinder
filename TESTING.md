@@ -8,7 +8,27 @@ Run the full Python suite with coverage from the repository root:
 pytest backend/tests --cov=app --cov-report=term-missing
 ```
 
-This covers unit, service, tool-wrapper, and route-level backend tests.
+Backend tests are grouped by theme under `backend/tests`:
+
+- `api/routes`: route and handler tests
+- `core`: security tests
+- `repositories`: repository and dependency tests
+- `services`: state, path, and runner tests
+- `services/ai`: AI orchestration tests
+- `tools`: crawler and apply wrapper tests
+
+Generate HTML backend reports with:
+
+```bash
+python backend/scripts/generate_backend_test_reports.py
+```
+
+This writes:
+
+- `backend/reports/tests/backend-tests.html`
+- `backend/reports/tests/backend-tests.xml`
+- `backend/reports/tests/backend-tests.txt`
+- `backend/reports/coverage/index.html`
 
 ## Frontend API/Node Suite
 
@@ -19,11 +39,14 @@ npm run test
 npm run test:coverage
 ```
 
-These tests run under `vitest.node.config.js` and currently verify the shared HTTP client plus API wrapper modules.
+These tests run under `vitest.node.config.js` from `src/test/node`, grouped into:
+
+- `node/api`: shared HTTP client and API wrappers
+- `node/smoke`: import and smoke checks
 
 ## Frontend DOM Suite
 
-A broader DOM-oriented suite is present in `job-agent-frontend/src/test`, including page, context, router, and component tests:
+A broader DOM-oriented suite is present in `job-agent-frontend/src/test/dom`, grouped into `app`, `components`, `contexts`, `pages`, and `router`:
 
 ```bash
 npm run test:dom
