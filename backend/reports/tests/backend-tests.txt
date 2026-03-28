@@ -5,28 +5,30 @@ configfile: pytest.ini
 plugins: cov-7.1.0, langsmith-0.6.0, anyio-4.12.1
 collected 89 items
 
-backend/tests/api/routes/test_applications_routes.py ...                 [  3%]
-backend/tests/api/routes/test_auth_routes.py ....                        [  7%]
-backend/tests/api/routes/test_profile_routes.py .......                  [ 15%]
-backend/tests/api/routes/test_search_routes.py .............             [ 30%]
-backend/tests/core/test_security.py ....                                 [ 34%]
-backend/tests/repositories/test_repository_and_deps.py .........         [ 44%]
-backend/tests/services/ai/test_ai_modules.py .............               [ 59%]
-backend/tests/services/test_paths_and_ai_runner.py .......               [ 67%]
-backend/tests/services/test_search_state.py .....                        [ 73%]
-backend/tests/tools/test_apply_http_tools.py .........                   [ 83%]
-backend/tests/tools/test_parser_and_one_click_tools.py ...............   [100%]
+backend/tests/integration/api/routes/test_applications_routes.py ...     [  3%]
+backend/tests/integration/api/routes/test_auth_routes.py ....            [  7%]
+backend/tests/integration/api/routes/test_profile_routes.py .......      [ 15%]
+backend/tests/integration/api/routes/test_search_routes.py ............. [ 30%]
+                                                                         [ 30%]
+backend/tests/unit/core/test_security.py ....                            [ 34%]
+backend/tests/unit/repositories/test_repository_and_deps.py .........    [ 44%]
+backend/tests/unit/services/ai/test_ai_modules.py .............          [ 59%]
+backend/tests/unit/services/test_paths_and_ai_runner.py .......          [ 67%]
+backend/tests/unit/services/test_search_state.py .....                   [ 73%]
+backend/tests/unit/tools/test_apply_http_tools.py .........              [ 83%]
+backend/tests/unit/tools/test_parser_and_one_click_tools.py ............ [ 96%]
+...                                                                      [100%]
 
 =============================== warnings summary ===============================
-backend/tests/api/routes/test_auth_routes.py::test_login_returns_token_and_user
-backend/tests/core/test_security.py::test_utworz_token_dostepu_and_zweryfikuj_token
-backend/tests/core/test_security.py::test_zweryfikuj_token_returns_none_for_expired_token
-backend/tests/repositories/test_repository_and_deps.py::test_pobierz_aktualnego_uzytkownika_returns_document
+backend/tests/integration/api/routes/test_auth_routes.py::test_login_returns_token_and_user
+backend/tests/unit/core/test_security.py::test_utworz_token_dostepu_and_zweryfikuj_token
+backend/tests/unit/core/test_security.py::test_zweryfikuj_token_returns_none_for_expired_token
+backend/tests/unit/repositories/test_repository_and_deps.py::test_pobierz_aktualnego_uzytkownika_returns_document
   /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/app/core/security.py:31: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
     wygasa = datetime.utcnow() + expires_delta
 
-backend/tests/api/routes/test_search_routes.py: 15 warnings
-backend/tests/services/test_search_state.py: 513 warnings
+backend/tests/integration/api/routes/test_search_routes.py: 15 warnings
+backend/tests/unit/services/test_search_state.py: 513 warnings
   /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/app/services/search_state.py:30: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
     return datetime.utcnow().isoformat() + "Z"
 
@@ -65,4 +67,4 @@ backend/app/tools/parser_crawler_wrapper.py       22      0   100%
 ----------------------------------------------------------------------------
 TOTAL                                           1126     52    95%
 Coverage HTML written to dir /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/reports/coverage
-======================= 89 passed, 532 warnings in 8.21s =======================
+======================= 89 passed, 532 warnings in 9.07s =======================
