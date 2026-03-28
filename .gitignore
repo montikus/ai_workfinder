@@ -5,7 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
-*.idea
+.idea/
+.vscode/
 # Distribution / packaging
 .Python
 build/
@@ -93,7 +94,7 @@ ipython_config.py
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
 #Pipfile.lock
-*/node-modules
+node_modules/
 # UV
 #   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
@@ -205,3 +206,14 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Project-specific artifacts
+coverage/
+backend/reports/
+backend/uploads/
+backend/app/tools/_justjoin_headers_local.py
+
+# Editor swap files
+*.swp
+*.swo
+*~
