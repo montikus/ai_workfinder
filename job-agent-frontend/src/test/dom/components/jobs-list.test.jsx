@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { JobsList } from '../../../components/JobsList.jsx';
 import { pobierzOferty } from '../../../api/jobs.js';
 import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
@@ -10,6 +10,11 @@ vi.mock('../../../api/jobs.js', () => ({
 }));
 
 describe('JobsList', () => {
+  beforeEach(() => {
+    pobierzOferty.mockReset();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   it('renders fetched jobs and normalizes status labels', async () => {
     pobierzOferty.mockResolvedValue({
       data: [

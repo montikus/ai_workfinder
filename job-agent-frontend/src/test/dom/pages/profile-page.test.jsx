@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProfilePage } from '../../../pages/ProfilePage.jsx';
 import { pobierzProfil, aktualizujProfil } from '../../../api/auth.js';
 import { klientHttp } from '../../../api/http.js';
@@ -28,6 +28,14 @@ vi.mock('../../../context/AuthContext.jsx', () => ({
 }));
 
 describe('ProfilePage', () => {
+  beforeEach(() => {
+    pobierzProfil.mockReset();
+    aktualizujProfil.mockReset();
+    klientHttp.post.mockReset();
+    useAuth.mockReset();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   it('loads the profile and saves updates', async () => {
     const user = userEvent.setup();
     const ustawUzytkownika = vi.fn();
@@ -60,6 +68,13 @@ describe('ProfilePage', () => {
 
     await user.clear(screen.getByDisplayValue('Roman'));
     await user.type(screen.getByPlaceholderText('Name'), 'Roman Tester');
+    await user.clear(screen.getByDisplayValue('+48123456789'));
+    await user.type(screen.getByPlaceholderText('Phone'), '+48987654321');
+    await user.clear(screen.getByDisplayValue('Warsaw'));
+    await user.type(screen.getByPlaceholderText('Location'), 'Krakow');
+    const preferencesInput = screen.getByDisplayValue('Remote only');
+    await user.clear(preferencesInput);
+    await user.type(preferencesInput, 'Hybrid');
     await user.click(screen.getByRole('button', { name: 'Save profile' }));
 
     await waitFor(() => {
@@ -67,9 +82,9 @@ describe('ProfilePage', () => {
     });
     expect(aktualizujProfil).toHaveBeenCalledWith({
       name: 'Roman Tester',
-      phone: '+48123456789',
-      location: 'Warsaw',
-      job_preferences_text: 'Remote only',
+      phone: '+48987654321',
+      location: 'Krakow',
+      job_preferences_text: 'Hybrid',
     });
     expect(ustawUzytkownika).toHaveBeenCalled();
   });
@@ -130,6 +145,53 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed to load profile')).toBeInTheDocument();
+    });
+  });
+
+  it('shows an error when saving profile updates fails', async () => {
+    const user = userEvent.setup();
+    useAuth.mockReturnValue({ uzytkownik: null, ustawUzytkownika: vi.fn() });
+    pobierzProfil.mockResolvedValue({
+      data: {
+        name: 'Roman',
+        phone: '',
+        location: '',
+        job_preferences_text: '',
+      },
+    });
+    aktualizujProfil.mockRejectedValue(new Error('boom'));
+
+    renderWithProviders(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Roman')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Save profile' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to update profile')).toBeInTheDocument();
+    });
+  });
+
+  it('shows an error when resume upload fails', async () => {
+    const ustawUzytkownika = vi.fn();
+    useAuth.mockReturnValue({ uzytkownik: null, ustawUzytkownika });
+    pobierzProfil.mockResolvedValue({ data: {} });
+    klientHttp.post.mockRejectedValue(new Error('boom'));
+
+    const { container } = renderWithProviders(<ProfilePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Profile')).toBeInTheDocument();
+    });
+
+    const file = new File(['resume'], 'broken-resume.pdf', { type: 'application/pdf' });
+    const input = container.querySelector('input[type="file"]');
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to upload resume')).toBeInTheDocument();
     });
   });
 });

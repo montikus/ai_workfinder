@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApplicationsPage } from '../../../pages/ApplicationsPage.jsx';
 import { pobierzAplikacje } from '../../../api/applications.js';
 import { renderWithProviders } from '../../helpers/renderWithProviders.jsx';
@@ -10,6 +10,11 @@ vi.mock('../../../api/applications.js', () => ({
 }));
 
 describe('ApplicationsPage', () => {
+  beforeEach(() => {
+    pobierzAplikacje.mockReset();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   it('renders applications list', async () => {
     pobierzAplikacje.mockResolvedValue({
       data: [

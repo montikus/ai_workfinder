@@ -16,7 +16,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
       include: ['src/**/*.{js,jsx}'],
-      exclude: ['src/**/*.css', 'src/assets/**', 'src/main.jsx'],
+      exclude: ['src/**/*.css', 'src/assets/**', 'src/main.jsx', 'src/test/**'],
       thresholds: {
         lines: 90,
         statements: 90,
