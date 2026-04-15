@@ -1,0 +1,56 @@
+
+> job-agent-frontend@0.0.0 test:dom:coverage
+> vitest run --coverage
+
+
+[1m[46m RUN [49m[22m [36mv4.1.2 [39m[90m/mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/job-agent-frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m src/test/dom/pages/register-page.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[33m 527[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/dashboard-page.test.jsx [2m([22m[2m5 tests[22m[2m)[22m[33m 337[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/login-page.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 292[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/profile-page.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[33m 356[2mms[22m[39m
+ [32m✓[39m src/test/dom/components/main-layout.test.jsx [2m([22m[2m1 test[22m[2m)[22m[32m 74[2mms[22m[39m
+ [32m✓[39m src/test/dom/contexts/auth-context.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m src/test/dom/app/app.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 58[2mms[22m[39m
+ [32m✓[39m src/test/dom/contexts/i18n-and-toggle.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/applications-page.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+ [32m✓[39m src/test/dom/components/jobs-list.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 70[2mms[22m[39m
+ [32m✓[39m src/test/dom/api/http-client.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/test/dom/router/protected-route.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m src/test/dom/api/api-wrappers.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[32m42 passed[39m[22m[90m (42)[39m
+[2m   Start at [22m 20:02:00
+[2m   Duration [22m 89.40s[2m (transform 2.20s, setup 43.29s, import 13.42s, tests 2.00s, environment 77.22s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   94.38 |    84.18 |   95.28 |   97.65 |                   
+ src               |     100 |      100 |     100 |     100 |                   
+  App.jsx          |     100 |      100 |     100 |     100 |                   
+ src/api           |     100 |     91.3 |     100 |     100 |                   
+  applications.js  |     100 |      100 |     100 |     100 |                   
+  auth.js          |     100 |      100 |     100 |     100 |                   
+  gmail.js         |     100 |      100 |     100 |     100 |                   
+  http.js          |     100 |     91.3 |     100 |     100 | 15,92             
+  jobs.js          |     100 |      100 |     100 |     100 |                   
+ src/components    |   93.61 |     72.5 |     100 |     100 |                   
+  JobsList.jsx     |   90.62 |    70.37 |     100 |     100 | 16-26,58-66       
+  ...ageToggle.jsx |     100 |      100 |     100 |     100 |                   
+  MainLayout.jsx   |     100 |       50 |     100 |     100 | 22-28             
+ src/context       |   98.27 |    89.47 |      90 |   98.24 |                   
+  AuthContext.jsx  |     100 |       75 |     100 |     100 | 39                
+  I18nContext.jsx  |   96.15 |    93.33 |      80 |      96 | 203               
+ src/pages         |   92.68 |    85.02 |   94.54 |   96.69 |                   
+  ...tionsPage.jsx |      90 |    77.27 |     100 |     100 | 16-26,57          
+  ...boardPage.jsx |   94.02 |    84.84 |    92.3 |   97.61 | 38,57-58          
+  LoginPage.jsx    |     100 |      100 |     100 |     100 |                   
+  ProfilePage.jsx  |    87.5 |    84.37 |    92.3 |    92.1 | 109-115           
+  RegisterPage.jsx |     100 |      100 |     100 |     100 |                   
+ src/router        |     100 |      100 |     100 |     100 |                   
+  ...ctedRoute.jsx |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

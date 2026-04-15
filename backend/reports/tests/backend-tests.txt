@@ -67,4 +67,4 @@ backend/app/tools/parser_crawler_wrapper.py       22      0   100%
 ----------------------------------------------------------------------------
 TOTAL                                           1126     52    95%
 Coverage HTML written to dir /mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/backend/reports/coverage
-====================== 89 passed, 532 warnings in 12.31s =======================
+======================= 89 passed, 532 warnings in 9.04s =======================

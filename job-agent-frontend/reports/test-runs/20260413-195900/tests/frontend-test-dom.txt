@@ -1,0 +1,26 @@
+
+> job-agent-frontend@0.0.0 test:dom
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv4.1.2 [39m[90m/mnt/c/Users/romch/OneDrive/Desktop/Git_Hub/ai_workfinder/job-agent-frontend[39m
+
+ [32m✓[39m src/test/dom/pages/register-page.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[33m 447[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/dashboard-page.test.jsx [2m([22m[2m5 tests[22m[2m)[22m[33m 313[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/login-page.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 262[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/profile-page.test.jsx [2m([22m[2m6 tests[22m[2m)[22m[33m 310[2mms[22m[39m
+ [32m✓[39m src/test/dom/components/main-layout.test.jsx [2m([22m[2m1 test[22m[2m)[22m[32m 76[2mms[22m[39m
+ [32m✓[39m src/test/dom/contexts/auth-context.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m src/test/dom/components/jobs-list.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/test/dom/pages/applications-page.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+ [32m✓[39m src/test/dom/app/app.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 61[2mms[22m[39m
+ [32m✓[39m src/test/dom/contexts/i18n-and-toggle.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 59[2mms[22m[39m
+ [32m✓[39m src/test/dom/api/http-client.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m src/test/dom/router/protected-route.test.jsx [2m([22m[2m3 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m src/test/dom/api/api-wrappers.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[32m42 passed[39m[22m[90m (42)[39m
+[2m   Start at [22m 20:00:20
+[2m   Duration [22m 87.43s[2m (transform 2.25s, setup 42.63s, import 13.48s, tests 1.80s, environment 76.60s)[22m
+

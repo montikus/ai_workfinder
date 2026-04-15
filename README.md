@@ -31,7 +31,14 @@ npm run dev
 
 From backend/ folder: 
 
+For the first time run:
 ``` 
+pip install -r requirements.txt
+
+python venv venv
+```
+For regular run:
+```
 source venv/bin/activate
 
 uvicorn app.main:app --reload --port 8001
